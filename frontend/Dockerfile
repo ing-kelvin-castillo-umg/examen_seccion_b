@@ -15,7 +15,9 @@ COPY . .
 # Deshabilitar telemetría de Next.js en build
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# URL pública de la API durante build
+ARG NEXT_PUBLIC_SESSION_IDLE_MS=120000
+ENV NEXT_PUBLIC_SESSION_IDLE_MS=${NEXT_PUBLIC_SESSION_IDLE_MS}
+
 RUN npm run build
 
 # Stage 3: Runner

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { User } from "@/entities/user.entity";
 import { AuthService } from "@/services/auth.service";
 import { AuthMapper } from "@/mappers/auth.mapper";
@@ -13,7 +13,7 @@ interface AuthContextType {
   isAdmin: boolean;
   loading: boolean;
   login: (username: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
+  logout: (reason?: "manual" | "inactivity") => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,6 +23,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const isAdmin = !!(user?.roles && user.roles.includes("ROLE_ADMIN"));
+  const isAuthenticated = !!token && !!user;
 
   useEffect(() => {
     const session = AuthService.getStoredSession();
@@ -52,15 +54,60 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(session.token);
   };
 
-  const logout = async () => {
+  const logout = useCallback(async (reason: "manual" | "inactivity" = "manual") => {
     await AuthService.logout();
     setUser(null);
     setToken(null);
+    if (reason === "inactivity") {
+      sessionStorage.setItem("logoutReason", "Sesión cerrada por inactividad");
+      router.push("/login?reason=inactivity");
+      return;
+    }
     router.push("/");
-  };
+  }, [router]);
 
-  const isAdmin = !!(user?.roles && user.roles.includes("ROLE_ADMIN"));
-  const isAuthenticated = !!token && !!user;
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const idleTimeoutMs = Number(process.env.NEXT_PUBLIC_SESSION_IDLE_MS || 120_000);
+    let idleTimer: number;
+    let isSigningOut = false;
+
+    const signOutForInactivity = async () => {
+      if (isSigningOut) return;
+      isSigningOut = true;
+      console.warn("[AUTH] session_idle_detected", {
+        timeoutMs: idleTimeoutMs,
+        action: "logout",
+      });
+      await logout("inactivity");
+    };
+
+    const resetIdleTimer = () => {
+      window.clearTimeout(idleTimer);
+      idleTimer = window.setTimeout(signOutForInactivity, idleTimeoutMs);
+    };
+
+    const activityEvents: Array<keyof WindowEventMap> = [
+      "mousemove",
+      "keydown",
+      "click",
+      "scroll",
+      "touchstart",
+    ];
+
+    activityEvents.forEach((eventName) => {
+      window.addEventListener(eventName, resetIdleTimer, { passive: true });
+    });
+    resetIdleTimer();
+
+    return () => {
+      window.clearTimeout(idleTimer);
+      activityEvents.forEach((eventName) => {
+        window.removeEventListener(eventName, resetIdleTimer);
+      });
+    };
+  }, [isAuthenticated, logout]);
 
   return (
     <AuthContext.Provider
