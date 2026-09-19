@@ -1,18 +1,8 @@
 import { ApiResponseDto } from "@/dtos/auth.dto";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-
 export class ApiClient {
-  private static getToken(): string | null {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("token");
-    }
-    return null;
-  }
-
   static async request<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponseDto<T>> {
-    const url = `${API_BASE_URL}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
-    const token = this.getToken();
+    const url = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
@@ -20,14 +10,11 @@ export class ApiClient {
       ...(options.headers as Record<string, string>),
     };
 
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-
     try {
       const response = await fetch(url, {
         ...options,
         headers,
+        credentials: "same-origin",
       });
 
       const data = await response.json();

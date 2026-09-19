@@ -48,12 +48,12 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: http://localhost:8080
     container_name: examen_frontend
     restart: unless-stopped
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8080
+      # Solo servidor (Route Handlers de Next.js); el navegador nunca ve esta URL
+      BACKEND_URL: ${BACKEND_URL:-http://backend:8080}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
     ports:
       - "3000:3000"
     depends_on:
