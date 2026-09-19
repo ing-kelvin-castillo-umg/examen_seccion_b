@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
@@ -13,16 +13,33 @@ import {
   AlertCircle,
   Loader2,
   ChevronLeft,
+  Info,
 } from "lucide-react";
+
+/** Mensajes informativos según el motivo por el que se llegó al login (?reason=). */
+const SESSION_MESSAGES: Record<string, string> = {
+  session_expired: "Tu sesión expiró. Por favor inicia sesión nuevamente.",
+  refresh_failed: "No fue posible renovar tu sesión (refresh token expirado o revocado). Inicia sesión nuevamente.",
+};
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const { login } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    const reason = new URLSearchParams(window.location.search).get("reason");
+    if (reason && SESSION_MESSAGES[reason]) {
+      setNotice(SESSION_MESSAGES[reason]);
+      // Limpiar el parámetro de la URL sin recargar
+      window.history.replaceState(null, "", "/login");
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,6 +120,14 @@ export default function LoginPage() {
             </button>
           </div>
         </div>
+
+        {/* Session Notice (expiración / inactividad) */}
+        {notice && (
+          <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-200 flex items-center gap-2">
+            <Info className="w-4 h-4 shrink-0" />
+            <span>{notice}</span>
+          </div>
+        )}
 
         {/* Error Notification */}
         {error && (

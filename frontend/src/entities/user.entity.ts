@@ -11,6 +11,9 @@ export interface User {
 
 export interface AuthSession {
   token: string;
+  refreshToken: string | null;
+  /** Expiración del access token (epoch ms) */
+  expiresAt: number | null;
   user: User;
   isAuthenticated: boolean;
   isAdmin: boolean;

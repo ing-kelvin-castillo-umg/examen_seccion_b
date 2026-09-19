@@ -6,10 +6,18 @@ export interface LoginRequestDto {
 export interface AuthResponseDto {
   token: string;
   type: string;
+  /** Refresh token opaco para renovar el access token */
+  refreshToken: string;
+  /** Vigencia del access token en milisegundos */
+  expiresIn: number;
   username: string;
   fullName: string;
   email: string;
   roles: string[];
+}
+
+export interface RefreshTokenRequestDto {
+  refreshToken: string;
 }
 
 export interface UserResponseDto {

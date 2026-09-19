@@ -1,5 +1,6 @@
 import { AuthResponseDto, LoginRequestDto, UserResponseDto } from "@/dtos/auth.dto";
 import { AuthSession, User, UserRole } from "@/entities/user.entity";
+import { getJwtExpirationMs } from "@/lib/jwt";
 
 export class AuthMapper {
   static toSession(dto: AuthResponseDto): AuthSession {
@@ -14,6 +15,8 @@ export class AuthMapper {
 
     return {
       token: dto.token,
+      refreshToken: dto.refreshToken ?? null,
+      expiresAt: getJwtExpirationMs(dto.token) ?? (dto.expiresIn ? Date.now() + dto.expiresIn : null),
       user: user,
       isAuthenticated: !!dto.token,
       isAdmin: roles.includes("ROLE_ADMIN"),

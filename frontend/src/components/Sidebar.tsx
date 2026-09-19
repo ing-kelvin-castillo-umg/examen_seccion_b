@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { SessionStatus } from "@/components/SessionStatus";
 import {
   Package,
   Boxes,
@@ -103,6 +104,8 @@ export const Sidebar: React.FC = () => {
             {isAdmin ? "Admin" : "User"}
           </span>
         </div>
+
+        <SessionStatus />
 
         <button
           onClick={logout}

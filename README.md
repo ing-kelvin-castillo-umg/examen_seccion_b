@@ -64,6 +64,25 @@ docker compose up --build
 
 El navegador **nunca** se comunica directamente con Spring Boot. Todas las llamadas del cliente (`ApiClient`) van a rutas locales de Next.js (`/api/...`), y los **Route Handlers** en `frontend/src/app/api/[...path]/route.ts` reenvían la petición al backend usando la variable de entorno de servidor `BACKEND_URL` (en Docker: `http://backend:8080`), propagando método, query string, cuerpo y encabezados (`Authorization`, `Content-Type`, `Accept`). La lógica del proxy vive en `frontend/src/lib/backend-proxy.ts`; Swagger UI y la especificación OpenAPI (`/swagger-ui/**`, `/v3/api-docs/**`) también se sirven a través del proxy.
 
+### 🔄 Política de Refresh Token
+
+| Token | Formato | Vigencia (Docker) | Dónde vive |
+| :--- | :--- | :--- | :--- |
+| **Access token** | JWT HS256 firmado | `JWT_EXPIRATION_MS` = 2 min | Solo en el cliente; se envía como `Authorization: Bearer` |
+| **Refresh token** | UUID opaco | `JWT_REFRESH_EXPIRATION_MS` = 30 min (deslizante) | Persistido en la tabla `refresh_tokens` (Liquibase `006`) |
+
+**Backend (Spring Boot)**
+- `POST /api/auth/login` devuelve `token`, `refreshToken` y `expiresIn`.
+- `POST /api/auth/refresh` recibe `{ "refreshToken": "..." }`, valida que exista, no esté revocado ni expirado, **lo revoca y emite un nuevo par** (rotación). Responde `401` si el refresh token es inválido, expiró o fue revocado.
+- **Detección de reuso:** si se presenta un refresh token que ya fue rotado, se revocan *todos* los refresh tokens del usuario (posible robo de token).
+
+**Frontend (Next.js)** — `src/services/token.manager.ts` + `src/services/api.client.ts`
+- **Renovación proactiva:** antes de cada petición, y cada 10 s en segundo plano (`AuthContext`), si el access token vence en ≤ 30 s se renueva de forma transparente.
+- **Renovación reactiva:** si el backend responde `401`, se renueva el token y se reintenta la petición **una sola vez**.
+- Una única petición de refresh en vuelo (*single-flight*) aunque haya varias llamadas concurrentes.
+- Si el refresh token también expiró o fue revocado, se limpia `localStorage` y se redirige a `/login?reason=session_expired` con un mensaje informativo.
+- El *Sidebar* del dashboard muestra la cuenta regresiva del access token y un botón para forzar la renovación (útil para evidenciar el flujo).
+
 Para detener los servicios:
 ```bash
 docker compose down
@@ -103,6 +122,7 @@ La aplicación estará disponible en [http://localhost:3000](http://localhost:30
 | Método | Endpoint | Descripción | Acceso |
 | :--- | :--- | :--- | :--- |
 | `POST` | `/api/auth/login` | Iniciar sesión y obtener token JWT | Público |
+| `POST` | `/api/auth/refresh` | Renovar access token con un refresh token vigente (rotación) | Público |
 | `GET` | `/api/auth/me` | Obtener perfil del usuario en sesión | Autenticado |
 | `GET` | `/api/products` | Listar productos (con soporte `?query=`) | Público / Carrusel |
 | `GET` | `/api/products/{id}` | Obtener detalle de un producto por ID | Público / Autenticado |
@@ -128,14 +148,16 @@ app_segundo_parcial/
 │       │   │   ├── dto/
 │       │   │   │   ├── request/ (LoginRequest, ProductRequest)
 │       │   │   │   └── response/ (ApiResponse, AuthResponse, ProductResponse, UserResponse)
-│       │   │   ├── entity/ (Product, Role, User)
+│       │   │   ├── entity/ (Product, Role, User, RefreshToken)
 │       │   │   ├── mapper/ (ProductMapper, UserMapper)
-│       │   │   ├── repository/ (ProductRepository, RoleRepository, UserRepository)
+│       │   │   ├── exception/ (TokenRefreshException)
+│       │   │   ├── repository/ (ProductRepository, RoleRepository, UserRepository, RefreshTokenRepository)
 │       │   │   ├── security/ (CustomUserDetailsService, JwtAuthenticationEntryPoint, JwtAuthenticationFilter, JwtTokenProvider)
 │       │   │   └── service/
 │       │   │       ├── AuthService.java
 │       │   │       ├── ProductService.java
-│       │   │       └── impl/ (AuthServiceImpl.java, ProductServiceImpl.java)
+│       │   │       ├── RefreshTokenService.java
+│       │   │       └── impl/ (AuthServiceImpl.java, ProductServiceImpl.java, RefreshTokenServiceImpl.java)
 │       │   └── resources/
 │       │       ├── application.yml
 │       │       └── db/changelog/
@@ -143,7 +165,9 @@ app_segundo_parcial/
 │       │           ├── 001-create-users-roles.xml
 │       │           ├── 002-insert-roles-users.xml
 │       │           ├── 003-create-products.xml
-│       │           └── 004-insert-initial-products.xml
+│       │           ├── 004-insert-initial-products.xml
+│       │           ├── 005-sync-sequences.xml
+│       │           └── 006-create-refresh-tokens.xml
 │       └── test/java/com/umg/examen/PasswordEncoderTest.java
 ├── frontend/
 │   ├── Dockerfile
@@ -153,13 +177,14 @@ app_segundo_parcial/
 │   ├── tailwind.config.ts
 │   └── src/
 │       ├── app/
+│       │   ├── api/[...path]/route.ts (Proxy inverso BFF hacia el backend)
 │       │   ├── layout.tsx
 │       │   ├── page.tsx (Página pública con Carrusel interactivo)
 │       │   ├── login/page.tsx (Pantalla de login con presets)
 │       │   └── dashboard/
 │       │       ├── layout.tsx (Layout privado con Sidebar)
 │       │       └── products/page.tsx (DataTable con CRUD y control de roles)
-│       ├── components/ (Navbar, Carousel, Sidebar, DataTable, ProductModals)
+│       ├── components/ (Navbar, Carousel, Sidebar, SessionStatus, DataTable, ProductModals)
 │       ├── context/ (AuthContext)
 │       ├── dtos/ (auth.dto.ts, product.dto.ts)
 │       ├── entities/ (user.entity.ts, product.entity.ts)
