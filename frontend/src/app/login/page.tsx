@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
+import { consumeSessionNotice } from "@/lib/session-notice";
 import {
   Package,
   KeyRound,
@@ -18,6 +19,7 @@ import {
 
 /** Mensajes informativos según el motivo por el que se llegó al login (?reason=). */
 const SESSION_MESSAGES: Record<string, string> = {
+  inactivity: "Sesión cerrada por inactividad",
   session_expired: "Tu sesión expiró. Por favor inicia sesión nuevamente.",
   refresh_failed: "No fue posible renovar tu sesión (refresh token expirado o revocado). Inicia sesión nuevamente.",
 };
@@ -33,11 +35,13 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const reason = new URLSearchParams(window.location.search).get("reason");
+    const fromQuery = new URLSearchParams(window.location.search).get("reason");
+    const reason = fromQuery || consumeSessionNotice();
     if (reason && SESSION_MESSAGES[reason]) {
       setNotice(SESSION_MESSAGES[reason]);
+      consumeSessionNotice();
       // Limpiar el parámetro de la URL sin recargar
-      window.history.replaceState(null, "", "/login");
+      if (fromQuery) window.history.replaceState(null, "", "/login");
     }
   }, []);
 

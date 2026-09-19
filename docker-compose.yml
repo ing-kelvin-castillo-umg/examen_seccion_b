@@ -51,6 +51,11 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        # Límite de inactividad (3 min) y antelación del aviso (30 s). Son valores
+        # de cliente (NEXT_PUBLIC_) y se fijan en tiempo de build.
+        NEXT_PUBLIC_INACTIVITY_TIMEOUT_MS: 180000
+        NEXT_PUBLIC_INACTIVITY_WARNING_MS: 30000
     container_name: examen_frontend
     restart: unless-stopped
     environment:

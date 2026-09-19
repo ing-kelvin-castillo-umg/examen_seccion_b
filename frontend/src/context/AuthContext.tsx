@@ -2,7 +2,9 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { User } from "@/entities/user.entity";
-import { AuthService } from "@/services/auth.service";
+import { AuthService, LogoutReason } from "@/services/auth.service";
+import { ActivityMonitor } from "@/services/activity.monitor";
+import { setSessionNotice } from "@/lib/session-notice";
 import { AUTH_EVENTS, SessionExpiredReason, TokenManager } from "@/services/token.manager";
 import { useRouter } from "next/navigation";
 
@@ -15,7 +17,8 @@ interface AuthContextType {
   isAdmin: boolean;
   loading: boolean;
   login: (username: string, password: string) => Promise<void>;
-  logout: () => void;
+  /** Cierre de sesión centralizado (manual o por inactividad) */
+  logout: (reason?: LogoutReason) => Promise<void>;
   /** Fuerza la renovación del access token (devuelve el nuevo token o null) */
   refreshSession: () => Promise<string | null>;
 }
@@ -58,6 +61,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     const onExpired = (e: Event) => {
       const reason = (e as CustomEvent<{ reason: SessionExpiredReason }>).detail?.reason ?? "session_expired";
+      setSessionNotice(reason);
       clearSessionState();
       router.push(`/login?reason=${reason}`);
     };
@@ -91,11 +95,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setTokenExpiresAt(session.expiresAt);
   };
 
-  const logout = () => {
-    AuthService.logout();
-    clearSessionState();
-    router.push("/");
-  };
+  /**
+   * Logout centralizado: usado por el botón "Cerrar Sesión" y por el detector de
+   * inactividad. Notifica al backend, limpia el estado local y redirige.
+   */
+  const logout = useCallback(
+    async (reason: LogoutReason = "user") => {
+      await AuthService.logout(reason);
+      ActivityMonitor.reset();
+      if (reason === "inactivity") setSessionNotice("inactivity");
+      clearSessionState();
+      router.push(reason === "inactivity" ? "/login?reason=inactivity" : "/");
+    },
+    [clearSessionState, router]
+  );
 
   const refreshSession = () => AuthService.refreshSession();
 

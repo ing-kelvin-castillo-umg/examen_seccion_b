@@ -83,6 +83,24 @@ El navegador **nunca** se comunica directamente con Spring Boot. Todas las llama
 - Si el refresh token también expiró o fue revocado, se limpia `localStorage` y se redirige a `/login?reason=session_expired` con un mensaje informativo.
 - El *Sidebar* del dashboard muestra la cuenta regresiva del access token y un botón para forzar la renovación (útil para evidenciar el flujo).
 
+### ⏱️ Detección de Inactividad y Logout Centralizado
+
+| Parámetro | Valor (Docker) | Variable |
+| :--- | :--- | :--- |
+| Tiempo máximo de inactividad | **3 min** | `NEXT_PUBLIC_INACTIVITY_TIMEOUT_MS` (build arg) |
+| Aviso previo al cierre | 30 s | `NEXT_PUBLIC_INACTIVITY_WARNING_MS` (build arg) |
+
+**Frontend**
+- `src/services/activity.monitor.ts` escucha `mousemove`, `mousedown`, `keydown`, `click`, `scroll`, `touchstart` y `wheel`, y sincroniza la última actividad entre pestañas mediante `localStorage`.
+- `src/components/InactivityGuard.tsx` (montado solo en el área privada) muestra un modal con cuenta regresiva 30 s antes del límite ("¿Sigues ahí?" → *Seguir conectado* / *Salir ahora*). Al llegar a cero ejecuta el **logout centralizado** con motivo `inactivity`.
+- `AuthContext.logout(reason)` es el único punto de cierre de sesión (lo usan el botón "Cerrar Sesión", el Navbar y el detector): notifica al backend, limpia `localStorage`, y redirige a `/login?reason=inactivity`, donde se muestra el mensaje **"Sesión cerrada por inactividad"**.
+- El *Sidebar* muestra la cuenta regresiva de inactividad junto a la del access token.
+
+**Backend**
+- Los JWT incluyen el claim `jti` (identificador único). `POST /api/auth/logout` registra el `jti` en la tabla `revoked_access_tokens` (Liquibase `007`) junto con usuario, motivo (`USER_LOGOUT` / `INACTIVITY`), IP y fecha — sirve como bitácora de cierres — y revoca el refresh token recibido.
+- `JwtAuthenticationFilter` rechaza cualquier access token cuyo `jti` esté revocado, aunque no haya expirado.
+- El endpoint es idempotente y funciona aunque el access token ya haya expirado (se leen sus claims igualmente). Una tarea programada depura la blacklist cada 10 min.
+
 Para detener los servicios:
 ```bash
 docker compose down
@@ -123,6 +141,7 @@ La aplicación estará disponible en [http://localhost:3000](http://localhost:30
 | :--- | :--- | :--- | :--- |
 | `POST` | `/api/auth/login` | Iniciar sesión y obtener token JWT | Público |
 | `POST` | `/api/auth/refresh` | Renovar access token con un refresh token vigente (rotación) | Público |
+| `POST` | `/api/auth/logout` | Cerrar sesión: invalida el access token (blacklist) y revoca el refresh token | Público (idempotente) |
 | `GET` | `/api/auth/me` | Obtener perfil del usuario en sesión | Autenticado |
 | `GET` | `/api/products` | Listar productos (con soporte `?query=`) | Público / Carrusel |
 | `GET` | `/api/products/{id}` | Obtener detalle de un producto por ID | Público / Autenticado |
@@ -148,10 +167,10 @@ app_segundo_parcial/
 │       │   │   ├── dto/
 │       │   │   │   ├── request/ (LoginRequest, ProductRequest)
 │       │   │   │   └── response/ (ApiResponse, AuthResponse, ProductResponse, UserResponse)
-│       │   │   ├── entity/ (Product, Role, User, RefreshToken)
+│       │   │   ├── entity/ (Product, Role, User, RefreshToken, RevokedAccessToken)
 │       │   │   ├── mapper/ (ProductMapper, UserMapper)
 │       │   │   ├── exception/ (TokenRefreshException)
-│       │   │   ├── repository/ (ProductRepository, RoleRepository, UserRepository, RefreshTokenRepository)
+│       │   │   ├── repository/ (ProductRepository, RoleRepository, UserRepository, RefreshTokenRepository, RevokedAccessTokenRepository)
 │       │   │   ├── security/ (CustomUserDetailsService, JwtAuthenticationEntryPoint, JwtAuthenticationFilter, JwtTokenProvider)
 │       │   │   └── service/
 │       │   │       ├── AuthService.java
@@ -167,7 +186,8 @@ app_segundo_parcial/
 │       │           ├── 003-create-products.xml
 │       │           ├── 004-insert-initial-products.xml
 │       │           ├── 005-sync-sequences.xml
-│       │           └── 006-create-refresh-tokens.xml
+│       │           ├── 006-create-refresh-tokens.xml
+│       │           └── 007-create-revoked-access-tokens.xml
 │       └── test/java/com/umg/examen/PasswordEncoderTest.java
 ├── frontend/
 │   ├── Dockerfile
@@ -184,7 +204,7 @@ app_segundo_parcial/
 │       │   └── dashboard/
 │       │       ├── layout.tsx (Layout privado con Sidebar)
 │       │       └── products/page.tsx (DataTable con CRUD y control de roles)
-│       ├── components/ (Navbar, Carousel, Sidebar, SessionStatus, DataTable, ProductModals)
+│       ├── components/ (Navbar, Carousel, Sidebar, SessionStatus, InactivityGuard, DataTable, ProductModals)
 │       ├── context/ (AuthContext)
 │       ├── dtos/ (auth.dto.ts, product.dto.ts)
 │       ├── entities/ (user.entity.ts, product.entity.ts)

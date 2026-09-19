@@ -1,5 +1,7 @@
 package com.umg.examen.security;
 
+import com.umg.examen.service.TokenBlacklistService;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,10 +25,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider tokenProvider;
     private final CustomUserDetailsService userDetailsService;
+    private final TokenBlacklistService tokenBlacklistService;
 
-    public JwtAuthenticationFilter(JwtTokenProvider tokenProvider, CustomUserDetailsService userDetailsService) {
+    public JwtAuthenticationFilter(JwtTokenProvider tokenProvider,
+                                   CustomUserDetailsService userDetailsService,
+                                   TokenBlacklistService tokenBlacklistService) {
         this.tokenProvider = tokenProvider;
         this.userDetailsService = userDetailsService;
+        this.tokenBlacklistService = tokenBlacklistService;
     }
 
     @Override
@@ -37,7 +43,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String jwt = getJwtFromRequest(request);
 
             if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
-                String username = tokenProvider.getUsernameFromJwt(jwt);
+                Claims claims = tokenProvider.getClaims(jwt);
+
+                // Token invalidado por logout (manual o por inactividad): no se autentica.
+                if (tokenBlacklistService.isRevoked(claims.getId())) {
+                    log.warn("Se rechazó un access token revocado (usuario='{}', jti={})", claims.getSubject(), claims.getId());
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+
+                String username = claims.getSubject();
 
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                 UsernamePasswordAuthenticationToken authentication =

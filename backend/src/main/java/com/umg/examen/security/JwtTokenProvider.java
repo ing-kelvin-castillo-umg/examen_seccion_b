@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
@@ -46,6 +48,7 @@ public class JwtTokenProvider {
         Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
 
         return Jwts.builder()
+                .id(UUID.randomUUID().toString()) // jti: permite revocar el token individualmente
                 .subject(userPrincipal.getUsername())
                 .claim("roles", roles)
                 .issuedAt(now)
@@ -59,6 +62,7 @@ public class JwtTokenProvider {
         Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
 
         return Jwts.builder()
+                .id(UUID.randomUUID().toString())
                 .subject(username)
                 .claim("roles", roles)
                 .issuedAt(now)
@@ -68,12 +72,31 @@ public class JwtTokenProvider {
     }
 
     public String getUsernameFromJwt(String token) {
+        return getClaims(token).getSubject();
+    }
+
+    public Claims getClaims(String token) {
         return Jwts.parser()
                 .verifyWith(getSigningKey())
                 .build()
                 .parseSignedClaims(token)
-                .getPayload()
-                .getSubject();
+                .getPayload();
+    }
+
+    /**
+     * Obtiene los claims de un token con firma válida aunque ya haya expirado.
+     * Se usa en el logout para poder registrar el cierre de sesión y revocar el
+     * refresh token incluso si el access token venció mientras el usuario estaba inactivo.
+     */
+    public Optional<Claims> getClaimsAllowExpired(String token) {
+        try {
+            return Optional.of(getClaims(token));
+        } catch (ExpiredJwtException e) {
+            return Optional.of(e.getClaims());
+        } catch (JwtException | IllegalArgumentException e) {
+            log.warn("Token JWT inválido al intentar leer sus claims: {}", e.getMessage());
+            return Optional.empty();
+        }
     }
 
     public boolean validateToken(String authToken) {

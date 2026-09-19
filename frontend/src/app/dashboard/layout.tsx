@@ -4,6 +4,7 @@ import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { Sidebar } from "@/components/Sidebar";
+import { InactivityGuard } from "@/components/InactivityGuard";
 import { Loader2 } from "lucide-react";
 
 export default function DashboardLayout({
@@ -35,6 +36,9 @@ export default function DashboardLayout({
 
   return (
     <div className="min-h-screen flex bg-slate-50 text-slate-900">
+      {/* Detector de inactividad (cierre de sesión automático) */}
+      <InactivityGuard />
+
       {/* Left Sidebar */}
       <Sidebar />
 
