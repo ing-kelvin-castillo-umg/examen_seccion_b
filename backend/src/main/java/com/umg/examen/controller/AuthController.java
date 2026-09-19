@@ -1,6 +1,7 @@
 package com.umg.examen.controller;
 
 import com.umg.examen.dto.request.LoginRequest;
+import com.umg.examen.dto.request.RefreshTokenRequest;
 import com.umg.examen.dto.response.ApiResponse;
 import com.umg.examen.dto.response.AuthResponse;
 import com.umg.examen.dto.response.UserResponse;
@@ -40,5 +41,12 @@ public class AuthController {
         }
         UserResponse user = authService.getCurrentUser(authentication.getName());
         return ResponseEntity.ok(ApiResponse.success("Perfil de usuario obtenido", user));
+    }
+
+    @PostMapping("/refresh")
+    @Operation(summary = "Renovar access token", description = "Recibe un refresh token válido (no revocado, no expirado) y devuelve un access token nuevo junto con un refresh token rotado")
+    public ResponseEntity<ApiResponse<AuthResponse>> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        AuthResponse authResponse = authService.refreshToken(request.getRefreshToken());
+        return ResponseEntity.ok(ApiResponse.success("Token renovado exitosamente", authResponse));
     }
 }

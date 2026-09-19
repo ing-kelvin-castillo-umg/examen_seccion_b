@@ -7,8 +7,11 @@ import java.util.List;
 @Schema(description = "Respuesta de autenticación con Token JWT")
 public class AuthResponse {
 
-    @Schema(description = "Token de acceso JWT")
+    @Schema(description = "Token de acceso JWT (vida corta)")
     private String token;
+
+    @Schema(description = "Refresh token opaco (vida larga) para renovar el token de acceso sin volver a autenticarse")
+    private String refreshToken;
 
     @Schema(description = "Tipo de token", example = "Bearer")
     private String type = "Bearer";
@@ -42,6 +45,14 @@ public class AuthResponse {
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
     }
 
     public String getType() {

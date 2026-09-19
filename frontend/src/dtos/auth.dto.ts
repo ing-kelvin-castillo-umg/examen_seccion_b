@@ -3,8 +3,13 @@ export interface LoginRequestDto {
   password: string;
 }
 
+export interface RefreshTokenRequestDto {
+  refreshToken: string;
+}
+
 export interface AuthResponseDto {
   token: string;
+  refreshToken: string;
   type: string;
   username: string;
   fullName: string;
