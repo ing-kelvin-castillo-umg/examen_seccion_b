@@ -1,6 +1,9 @@
 import { ApiResponseDto } from "@/dtos/auth.dto";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+// BFF (Fase 1): el navegador ya no conoce la URL real del backend. Todas las
+// peticiones van a rutas relativas de Next.js (src/app/api/...), que son las
+// que reenvían internamente hacia Spring Boot desde el servidor.
+const API_BASE_URL = "";
 
 export class ApiClient {
   private static getToken(): string | null {
