@@ -15,9 +15,9 @@ COPY . .
 # Deshabilitar telemetría de Next.js en build
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# URL pública de la API durante build
-ARG NEXT_PUBLIC_API_URL=http://localhost:8080
-ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+# URL interna de Spring Boot; no se expone al bundle del navegador
+ARG BACKEND_API_URL=http://backend:8080
+ENV BACKEND_API_URL=${BACKEND_API_URL}
 
 RUN npm run build
 
