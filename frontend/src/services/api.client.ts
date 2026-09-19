@@ -1,7 +1,7 @@
 import { ApiResponseDto } from "@/dtos/auth.dto";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-
+// Todas las peticiones se dirigen al BFF de Next.js (mismo origen).
+// El navegador nunca conoce la URL real del backend Spring Boot.
 export class ApiClient {
   private static getToken(): string | null {
     if (typeof window !== "undefined") {
@@ -11,7 +11,7 @@ export class ApiClient {
   }
 
   static async request<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponseDto<T>> {
-    const url = `${API_BASE_URL}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
+    const url = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
     const token = this.getToken();
 
     const headers: Record<string, string> = {
