@@ -9,18 +9,34 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Paleta distintiva de marca: teal/esmeralda profundo (primaria)
         brand: {
-          50: '#f0f7ff',
-          100: '#e0effe',
-          200: '#bae0fd',
-          300: '#7cc7fb',
-          400: '#36abf7',
-          500: '#0c8fe9',
-          600: '#0271c7',
-          700: '#035aa1',
-          800: '#074c85',
-          900: '#0c406e',
-        }
+          50: '#effcf6',
+          100: '#d7f7e8',
+          200: '#b0efd1',
+          300: '#7ee2b8',
+          400: '#46cf9b',
+          500: '#1fae7f',
+          600: '#128a67',
+          700: '#0f6d54',
+          800: '#0f5745',
+          900: '#0e483b',
+          950: '#072921',
+        },
+        // Dorado/ámbar cálido: acento secundario (rol Admin, detalles premium)
+        accent: {
+          50: '#fff8eb',
+          100: '#ffecc7',
+          200: '#ffd98a',
+          300: '#ffc04d',
+          400: '#ffab24',
+          500: '#f78f08',
+          600: '#d66f04',
+          700: '#ad5308',
+          800: '#8c410d',
+          900: '#74370f',
+          950: '#431c05',
+        },
       }
     },
   },
