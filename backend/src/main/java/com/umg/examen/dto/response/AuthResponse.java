@@ -25,10 +25,14 @@ public class AuthResponse {
     @Schema(description = "Lista de roles asignados", example = "[\"ROLE_ADMIN\"]")
     private List<String> roles;
 
+    @Schema(description = "Token de actualización", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
+    private String refreshToken;
+
     public AuthResponse() {}
 
-    public AuthResponse(String token, String type, String username, String fullName, String email, List<String> roles) {
+    public AuthResponse(String token, String refreshToken, String type, String username, String fullName, String email, List<String> roles) {
         this.token = token;
+        this.refreshToken = refreshToken;
         this.type = type != null ? type : "Bearer";
         this.username = username;
         this.fullName = fullName;
@@ -42,6 +46,14 @@ public class AuthResponse {
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
     }
 
     public String getType() {

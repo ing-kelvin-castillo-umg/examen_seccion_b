@@ -1,0 +1,22 @@
+package com.umg.examen.dto.request;
+
+import jakarta.validation.constraints.NotBlank;
+
+public class RefreshTokenRequest {
+    @NotBlank(message = "El Refresh Token es obligatorio")
+    private String refreshToken;
+
+    public RefreshTokenRequest() {}
+
+    public RefreshTokenRequest(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
+}

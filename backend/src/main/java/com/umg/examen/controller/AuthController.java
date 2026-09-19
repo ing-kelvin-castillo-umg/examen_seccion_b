@@ -41,4 +41,11 @@ public class AuthController {
         UserResponse user = authService.getCurrentUser(authentication.getName());
         return ResponseEntity.ok(ApiResponse.success("Perfil de usuario obtenido", user));
     }
+
+    @PostMapping("/refresh")
+    @Operation(summary = "Refrescar token", description = "Genera un nuevo access token a partir de un refresh token válido")
+    public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(@Valid @RequestBody com.umg.examen.dto.request.RefreshTokenRequest request) {
+        AuthResponse authResponse = authService.refresh(request);
+        return ResponseEntity.ok(ApiResponse.success("Token renovado exitosamente", authResponse));
+    }
 }
