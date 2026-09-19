@@ -1,6 +1,6 @@
 import { ApiResponseDto } from "@/dtos/auth.dto";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+const API_BASE_URL = "";
 
 export class ApiClient {
   private static getToken(): string | null {
@@ -10,8 +10,13 @@ export class ApiClient {
     return null;
   }
 
-  static async request<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponseDto<T>> {
-    const url = `${API_BASE_URL}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
+  static async request<T>(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<ApiResponseDto<T>> {
+    const url = `${API_BASE_URL}${
+      endpoint.startsWith("/") ? endpoint : `/${endpoint}`
+    }`;
     const token = this.getToken();
 
     const headers: Record<string, string> = {
@@ -33,13 +38,19 @@ export class ApiClient {
       const data = await response.json();
 
       if (!response.ok) {
-        const errorMsg = data?.message || `Error HTTP ${response.status}: ${response.statusText}`;
+        const errorMsg =
+          data?.message ||
+          `Error HTTP ${response.status}: ${response.statusText}`;
+
         throw new Error(errorMsg);
       }
 
       return data as ApiResponseDto<T>;
     } catch (error: any) {
-      console.error(`[API ERROR] ${options.method || "GET"} ${url}:`, error.message);
+      console.error(
+        `[API ERROR] ${options.method || "GET"} ${url}:`,
+        error.message
+      );
       throw error;
     }
   }
@@ -48,14 +59,20 @@ export class ApiClient {
     return this.request<T>(endpoint, { method: "GET" });
   }
 
-  static post<T>(endpoint: string, body: any): Promise<ApiResponseDto<T>> {
+  static post<T>(
+    endpoint: string,
+    body: any
+  ): Promise<ApiResponseDto<T>> {
     return this.request<T>(endpoint, {
       method: "POST",
       body: JSON.stringify(body),
     });
   }
 
-  static put<T>(endpoint: string, body: any): Promise<ApiResponseDto<T>> {
+  static put<T>(
+    endpoint: string,
+    body: any
+  ): Promise<ApiResponseDto<T>> {
     return this.request<T>(endpoint, {
       method: "PUT",
       body: JSON.stringify(body),
