@@ -13,3 +13,14 @@
 - No incluir los valores completos de tokens en el PDF.
 - La persistencia en localStorage mantiene el diseño base; para producción conviene
   migrar credenciales a cookies HttpOnly y proteger las operaciones frente a CSRF.
+
+## Fase 3: inactividad y logout
+- Inactividad: 120 segundos; mouse, teclado, clic, scroll y touch renuevan actividad.
+- El refresco de tokens no cuenta como actividad humana. Pestañas comparten actividad.
+- Logout revoca en PostgreSQL toda la sesión: JWT viejos/nuevos y refresh quedan inválidos.
+- El cierre limpia localStorage y redirige inmediatamente a /login?reason=inactivity.
+- Sin conexión, guarda solo la solicitud de revocación pendiente en sessionStorage y
+  reintenta al volver la conexión o cada 15 segundos; no restaura el inicio de sesión.
+- Para evidencia: Network → Keep log, dejar el panel sin tocar por dos minutos.
+  Capturar el mensaje «Sesión cerrada por inactividad» y POST /api/auth/logout → 200.
+- Prueba automatizada: node tests/auth-smoke.mjs --logout --expiry

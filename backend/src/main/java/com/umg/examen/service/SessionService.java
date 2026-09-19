@@ -45,6 +45,23 @@ public class SessionService {
         result.setExpiresIn(jwt.getExpirationMs() / 1000);
         return result;
     }
+    public boolean isActive(String id, String username) {
+        if (id == null) return false;
+        return Boolean.TRUE.equals(jdbc.queryForObject(
+            "SELECT EXISTS (SELECT 1 FROM auth_sessions WHERE id = ? AND username = ? AND revoked_at IS NULL AND expires_at > CURRENT_TIMESTAMP)",
+            Boolean.class, id, username));
+    }
+
+    @Transactional
+    public void logout(String token, String reason) {
+        final String id;
+        try { id = jwt.getSessionId(token, true); }
+        catch (RuntimeException ex) { throw new BadCredentialsException("Token inválido"); }
+        if (id == null) throw new BadCredentialsException("Sesión inválida");
+        int changed = jdbc.update("UPDATE auth_sessions SET revoked_at = CURRENT_TIMESTAMP, revoke_reason = ? WHERE id = ? AND revoked_at IS NULL", reason, id);
+        if (changed > 0) org.slf4j.LoggerFactory.getLogger(SessionService.class).info("Sesión revocada. Motivo: {}", reason);
+    }
+
     @Transactional
     public AuthResponse create(User user) {
         String id = UUID.randomUUID().toString();

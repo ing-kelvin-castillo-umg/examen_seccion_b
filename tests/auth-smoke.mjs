@@ -41,13 +41,13 @@ console.log('PASS: standard user cannot create products.');
 
 if (process.argv.includes('--logout')) {
   const current = renewed.body.data;
-  const result = await request('/api/auth/logout',{method:'POST',body:{refreshToken:current.refreshToken,reason:'manual'}});
+  const result = await request('/api/auth/logout',{method:'POST',body:{token:current.token,reason:'manual'}});
   assert.equal(result.status,200);
   assert.equal((await refresh(current.refreshToken)).status,401);
   assert.equal((await request('/api/auth/me',{token:current.token})).status,401);
   assert.equal((await request('/api/auth/me',{token:session.token})).status,401);
   assert.equal((await request('/api/products',{method:'POST',token:current.token,body:{name:'Must not be created',price:1,stock:1}})).status,401);
-  assert.equal((await request('/api/auth/logout',{method:'POST',body:{refreshToken:current.refreshToken,reason:'manual'}})).status,200);
+  assert.equal((await request('/api/auth/logout',{method:'POST',body:{token:current.token,reason:'manual'}})).status,200);
   console.log('PASS: logout revokes refresh AND all access tokens of that session; repeated logout is safe.');
 }
 if (process.argv.includes('--expiry')) {

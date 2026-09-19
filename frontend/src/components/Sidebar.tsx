@@ -15,7 +15,7 @@ import {
 
 export const Sidebar: React.FC = () => {
   const pathname = usePathname();
-  const { user, isAdmin, logout } = useAuth();
+  const { user, isAdmin, logout, idleSeconds } = useAuth();
 
   const navItems = [
     {
@@ -77,6 +77,11 @@ export const Sidebar: React.FC = () => {
         </div>
       </nav>
 
+      <div className="px-5 py-3 text-xs text-slate-300 border-t border-slate-800">
+        <p>Cierre por inactividad</p>
+        <p className="font-mono text-lg font-bold text-white">{Math.floor(idleSeconds / 60)}:{String(idleSeconds % 60).padStart(2,"0")}</p>
+        {idleSeconds <= 30 && <p role="status" className="text-amber-300">Interactúa para mantener tu sesión.</p>}
+      </div>
       {/* User Profile Footer */}
       <div className="p-4 border-t border-slate-800 bg-slate-950/50">
         <div className="flex items-center justify-between gap-3 mb-3">

@@ -63,6 +63,18 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    // Signature is still verified for expired tokens; only logout uses allowExpired.
+    public String getSessionId(String token, boolean allowExpired) {
+        Claims claims;
+        try {
+            claims = Jwts.parser().verifyWith(getSigningKey()).build().parseSignedClaims(token).getPayload();
+        } catch (ExpiredJwtException ex) {
+            if (!allowExpired) throw ex;
+            claims = ex.getClaims();
+        }
+        return claims.get("sid", String.class);
+    }
+
     public long getExpirationMs() { return jwtExpirationMs; }
 
     public String generateSessionToken(String username, List<String> roles, String sessionId) {

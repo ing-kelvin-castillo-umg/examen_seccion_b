@@ -33,6 +33,12 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("Inicio de sesión exitoso", authResponse));
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(@Valid @RequestBody com.umg.examen.dto.request.LogoutRequest request) {
+        sessions.logout(request.token(), request.reason());
+        return ResponseEntity.ok(ApiResponse.success("Sesión cerrada e invalidada", null));
+    }
+
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<AuthResponse>> refresh(@Valid @RequestBody com.umg.examen.dto.request.RefreshRequest request) {
         return ResponseEntity.ok(ApiResponse.success("Token renovado", sessions.refresh(request.refreshToken())));

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
@@ -16,6 +16,13 @@ import {
 } from "lucide-react";
 
 export default function LoginPage() {
+  const [notice, setNotice] = useState("");
+  useEffect(() => {
+    const reason = new URLSearchParams(window.location.search).get("reason");
+    if (reason === "inactivity") setNotice("Sesión cerrada por inactividad");
+    else if (reason === "manual") setNotice("Sesión cerrada correctamente");
+    else if (reason === "expired") setNotice("Tu sesión expiró. Inicia sesión nuevamente.");
+  }, []);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -104,6 +111,7 @@ export default function LoginPage() {
           </div>
         </div>
 
+        {notice && <div role="status" className="p-3 rounded-xl border border-amber-400/40 bg-amber-500/10 text-amber-200 text-sm">{notice}</div>}
         {/* Error Notification */}
         {error && (
           <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-300 flex items-center gap-2">

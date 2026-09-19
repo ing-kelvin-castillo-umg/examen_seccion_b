@@ -16,7 +16,7 @@ export default function DashboardLayout({
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
-      router.push("/login");
+      router.replace("/login?reason=" + (localStorage.getItem("umg.logoutReason") || "expired"));
     }
   }, [isAuthenticated, loading, router]);
 
