@@ -66,108 +66,111 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8 bg-slate-950 text-slate-100 relative overflow-hidden">
-      {/* Background ambient lighting */}
-      <div className="absolute top-1/4 -left-32 w-80 h-80 bg-brand-600/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 -right-32 w-80 h-80 bg-accent-600/20 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8 bg-dark-950 text-slate-100 relative overflow-hidden">
+      {/* Background ambient glowing orbs */}
+      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-brand-500/15 rounded-full blur-[120px] pointer-events-none animate-pulse" />
+      <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-accent-500/15 rounded-full blur-[120px] pointer-events-none animate-pulse" />
 
       {/* Back to Home Link */}
       <div className="w-full max-w-md mb-6">
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-brand-400 transition-colors group"
         >
-          <ChevronLeft className="w-4 h-4" />
-          <span>Volver al Inicio</span>
+          <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+          <span>Volver al Catálogo Principal</span>
         </Link>
       </div>
 
-      {/* Login Card */}
-      <div className="w-full max-w-md bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-2xl space-y-6">
+      {/* Login Card (Cyber Glassmorphism) */}
+      <div className="w-full max-w-md glass-panel rounded-3xl p-8 shadow-neon-emerald border border-slate-800/80 space-y-6 relative z-10">
+        {/* Top glowing line */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-[2px] bg-gradient-to-r from-transparent via-brand-400 to-transparent" />
+
         {/* Header */}
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-brand-600 text-white flex items-center justify-center mx-auto shadow-lg shadow-brand-500/25">
-            <Package className="w-6 h-6" />
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-brand-600 via-brand-500 to-accent-600 text-white flex items-center justify-center mx-auto shadow-neon-emerald">
+            <Package className="w-7 h-7" />
           </div>
-          <h2 className="text-2xl font-black tracking-tight text-white">Iniciar Sesión</h2>
+          <h2 className="text-2xl font-black tracking-tight text-white pt-1">Acceso al Sistema</h2>
           <p className="text-xs text-slate-400">
-            Ingresa con tu cuenta para acceder a la gestión de productos
+            Ingresa tus credenciales para la gestión centralizada de productos
           </p>
         </div>
 
-        {/* Quick Fill Credentials Buttons (Ideal for evaluation!) */}
-        <div className="p-3.5 rounded-2xl bg-slate-800/60 border border-slate-700/60 space-y-2">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-            Acceso Rápido para Pruebas:
+        {/* Quick Fill Credentials Buttons */}
+        <div className="p-3.5 rounded-2xl bg-dark-900/80 border border-slate-800 space-y-2.5">
+          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block text-center">
+            ⚡ Acceso Rápido para Evaluación
           </span>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2.5">
             <button
               type="button"
               onClick={() => fillCredentials("admin", "admin123")}
-              className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-accent-500/20 hover:bg-accent-500/30 text-accent-300 border border-accent-500/30 text-xs font-semibold transition-all hover:scale-[1.02]"
+              className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-accent-950/40 hover:bg-accent-900/60 text-accent-300 border border-accent-500/30 text-xs font-bold transition-all hover:scale-[1.02] shadow-sm hover:shadow-neon-violet"
             >
-              <ShieldCheck className="w-3.5 h-3.5" />
+              <ShieldCheck className="w-4 h-4 text-accent-400" />
               <span>Rol Admin</span>
             </button>
             <button
               type="button"
               onClick={() => fillCredentials("user", "user123")}
-              className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 text-xs font-semibold transition-all hover:scale-[1.02]"
+              className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-brand-950/40 hover:bg-brand-900/60 text-brand-300 border border-brand-500/30 text-xs font-bold transition-all hover:scale-[1.02] shadow-sm hover:shadow-neon-emerald"
             >
-              <UserIcon className="w-3.5 h-3.5" />
+              <UserIcon className="w-4 h-4 text-brand-400" />
               <span>Rol Usuario</span>
             </button>
           </div>
         </div>
 
-        {/* Session Notice (expired / closed by inactivity) */}
+        {/* Session Notice */}
         {sessionNotice && !error && (
-          <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-300 flex items-center gap-2">
-            <Info className="w-4 h-4 shrink-0" />
-            <span>{sessionNotice}</span>
+          <div className="p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-300 flex items-center gap-2.5 animate-in fade-in">
+            <Info className="w-4 h-4 shrink-0 text-amber-400" />
+            <span className="font-medium">{sessionNotice}</span>
           </div>
         )}
 
         {/* Error Notification */}
         {error && (
-          <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-300 flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{error}</span>
+          <div className="p-3.5 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-300 flex items-center gap-2.5 animate-in fade-in">
+            <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+            <span className="font-medium">{error}</span>
           </div>
         )}
 
         {/* Form */}
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase mb-1.5">
-              Usuario
+            <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+              Nombre de Usuario
             </label>
             <div className="relative">
-              <UserIcon className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <UserIcon className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="admin o user"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-700 bg-slate-800 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-800 bg-dark-900/90 text-white placeholder-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/60 focus:border-brand-500 transition-all"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase mb-1.5">
+            <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">
               Contraseña
             </label>
             <div className="relative">
-              <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <KeyRound className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-700 bg-slate-800 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-800 bg-dark-900/90 text-white placeholder-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/60 focus:border-brand-500 transition-all"
               />
             </div>
           </div>
@@ -175,13 +178,13 @@ function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold text-sm shadow-lg shadow-brand-600/30 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
+            className="w-full inline-flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl bg-gradient-to-r from-brand-600 via-brand-500 to-emerald-600 hover:from-brand-500 hover:to-emerald-500 text-white font-bold text-sm shadow-neon-emerald transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 mt-2"
           >
             {loading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="w-5 h-5 animate-spin" />
             ) : (
               <>
-                <span>Entrar al Sistema</span>
+                <span>Iniciar Sesión en el Panel</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}

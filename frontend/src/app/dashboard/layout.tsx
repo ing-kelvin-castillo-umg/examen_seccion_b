@@ -34,7 +34,7 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen flex bg-slate-50 text-slate-900">
+    <div className="min-h-screen flex bg-dark-950 text-slate-100">
       {/* Left Sidebar */}
       <Sidebar />
 
