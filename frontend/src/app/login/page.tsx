@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
@@ -11,6 +11,7 @@ import {
   ArrowRight,
   ShieldCheck,
   AlertCircle,
+  Clock,
   Loader2,
   ChevronLeft,
 } from "lucide-react";
@@ -20,9 +21,26 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [inactivityMessage, setInactivityMessage] = useState(false);
 
   const { login } = useAuth();
   const router = useRouter();
+
+  // Fase 3: si el logout automático por inactividad nos trajo aquí, mostramos
+  // el aviso en pantalla (no solo en consola). Se lee de sessionStorage, NO
+  // de un query param en la URL: dashboard/layout.tsx tiene su propio guard
+  // que redirige a "/login" (sin ningún query) en cuanto isAuthenticated
+  // pasa a false, y esa redirección compite con la de AuthContext.logout()
+  // por la URL final — un query string se puede perder en esa carrera.
+  // sessionStorage no depende de la URL, así que no importa cuál de los dos
+  // router.push "gane": el mensaje sigue ahí cuando este efecto corre.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (sessionStorage.getItem("logoutReason") === "inactivity") {
+      setInactivityMessage(true);
+      sessionStorage.removeItem("logoutReason");
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,6 +121,14 @@ export default function LoginPage() {
             </button>
           </div>
         </div>
+
+        {/* Inactivity Logout Notification */}
+        {inactivityMessage && (
+          <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-300 flex items-center gap-2">
+            <Clock className="w-4 h-4 shrink-0" />
+            <span>Sesión cerrada por inactividad. Vuelve a iniciar sesión para continuar.</span>
+          </div>
+        )}
 
         {/* Error Notification */}
         {error && (

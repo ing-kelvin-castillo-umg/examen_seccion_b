@@ -7,7 +7,10 @@ const API_BASE_URL = "";
 
 // Endpoints del propio flujo de autenticación: el interceptor de 401 nunca
 // debe intentar refrescar el token para ellos (evita bucles infinitos).
-const AUTH_FLOW_ENDPOINTS = new Set(["/api/auth/login", "/api/auth/refresh"]);
+// /api/auth/logout se incluye por completitud/defensa: es público y no
+// debería devolver 401 nunca, pero si algo fallara no queremos que el
+// intento de cerrar sesión dispare, encima, un refresh.
+const AUTH_FLOW_ENDPOINTS = new Set(["/api/auth/login", "/api/auth/refresh", "/api/auth/logout"]);
 
 export class ApiClient {
   // Promesa de refresh compartida entre peticiones concurrentes (Fase 2): si

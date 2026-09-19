@@ -12,6 +12,8 @@ import com.umg.examen.repository.RefreshTokenRepository;
 import com.umg.examen.repository.UserRepository;
 import com.umg.examen.security.JwtTokenProvider;
 import com.umg.examen.service.AuthService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -30,6 +32,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class AuthServiceImpl implements AuthService {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
 
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
@@ -117,6 +121,23 @@ public class AuthServiceImpl implements AuthService {
         String newAccessToken = tokenProvider.generateTokenFromUsername(user.getUsername(), roles);
 
         return userMapper.toAuthResponse(user, newAccessToken, newRefreshToken);
+    }
+
+    @Override
+    @Transactional
+    public void logout(String rawRefreshToken) {
+        if (rawRefreshToken == null || rawRefreshToken.isBlank()) {
+            log.info("Logout solicitado sin refresh token; no hay nada que revocar.");
+            return;
+        }
+
+        refreshTokenRepository.findByToken(rawRefreshToken).ifPresentOrElse(storedToken -> {
+            User user = storedToken.getUser();
+            int revoked = refreshTokenRepository.revokeAllByUser(user);
+            log.info("Logout: usuario '{}' cerró sesión. {} refresh token(s) revocado(s).",
+                    user.getUsername(), revoked);
+        }, () -> log.info("Logout: el refresh token recibido ya no existe (inválido o ya revocado); " +
+                "se considera la sesión cerrada de todas formas."));
     }
 
     private String createAndPersistRefreshToken(User user) {

@@ -23,12 +23,42 @@ export class AuthService {
     return AuthMapper.toUserFromResponse(response.data);
   }
 
-  static logout(): void {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("token");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("user");
+  /**
+   * Cierra sesión: notifica al backend (para que revoque los refresh tokens
+   * del usuario, Fase 3) y limpia el almacenamiento local. Es tolerante a
+   * fallos de red: aunque el backend no responda, igual se limpia la sesión
+   * en el cliente, para no "atrapar" al usuario sin poder salir. Se usa
+   * fetch directo (no ApiClient) porque no necesita el interceptor de
+   * refresh de la Fase 2 (el endpoint es público) y sí necesita un timeout
+   * acotado para no bloquear el logout por inactividad si la red está lenta.
+   */
+  static async logout(): Promise<void> {
+    if (typeof window === "undefined") return;
+
+    const refreshToken = localStorage.getItem("refreshToken");
+    if (refreshToken) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000);
+      try {
+        await fetch("/api/auth/logout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ refreshToken }),
+          signal: controller.signal,
+        });
+      } catch (error) {
+        console.warn(
+          "[AuthService] No se pudo notificar el logout al backend; se cierra la sesión localmente de todas formas:",
+          error
+        );
+      } finally {
+        clearTimeout(timeoutId);
+      }
     }
+
+    localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
   }
 
   static getStoredSession(): AuthSession | null {

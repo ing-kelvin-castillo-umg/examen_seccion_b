@@ -13,4 +13,12 @@ public interface AuthService {
      * lo rota (lo revoca y emite uno nuevo) junto con un access token nuevo.
      */
     AuthResponse refreshToken(String refreshToken);
+
+    /**
+     * Cierra sesión: revoca TODOS los refresh tokens del usuario dueño del
+     * refresh token recibido. Tolerante por diseño (ver AuthServiceImpl): no
+     * depende de un access token válido y no lanza error si el token ya no
+     * existe (logout es idempotente).
+     */
+    void logout(String refreshToken);
 }

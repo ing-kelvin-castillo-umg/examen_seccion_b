@@ -49,4 +49,13 @@ public class AuthController {
         AuthResponse authResponse = authService.refreshToken(request.getRefreshToken());
         return ResponseEntity.ok(ApiResponse.success("Token renovado exitosamente", authResponse));
     }
+
+    @PostMapping("/logout")
+    @Operation(summary = "Cerrar sesión", description = "Revoca todos los refresh tokens del usuario dueño del refresh token recibido. " +
+            "No requiere un access token válido: se identifica al usuario a través del refresh token del body, " +
+            "precisamente para poder cerrar la sesión aunque el access token ya haya expirado.")
+    public ResponseEntity<ApiResponse<Void>> logout(@Valid @RequestBody RefreshTokenRequest request) {
+        authService.logout(request.getRefreshToken());
+        return ResponseEntity.ok(ApiResponse.success("Sesión cerrada correctamente", null));
+    }
 }

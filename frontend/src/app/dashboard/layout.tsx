@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { Sidebar } from "@/components/Sidebar";
+import { InactivityWarningModal } from "@/components/InactivityWarningModal";
+import { useInactivityTimeout } from "@/hooks/useInactivityTimeout";
 import { Loader2 } from "lucide-react";
 
 export default function DashboardLayout({
@@ -11,7 +13,7 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, logout } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -19,6 +21,19 @@ export default function DashboardLayout({
       router.push("/login");
     }
   }, [isAuthenticated, loading, router]);
+
+  const handleInactivityTimeout = useCallback(() => {
+    logout("inactivity");
+  }, [logout]);
+
+  // Fase 3: el detector de inactividad SOLO vive aquí, dentro del layout
+  // privado (/dashboard/**). Al montarse/desmontarse junto con este layout,
+  // nunca queda activo en la landing pública ni en /login. `enabled` además
+  // lo mantiene apagado mientras la sesión no esté confirmada.
+  const { showWarning, secondsRemaining, continueSession } = useInactivityTimeout({
+    onTimeout: handleInactivityTimeout,
+    enabled: isAuthenticated,
+  });
 
   if (loading) {
     return (
@@ -42,6 +57,12 @@ export default function DashboardLayout({
       <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         {children}
       </div>
+
+      <InactivityWarningModal
+        isOpen={showWarning}
+        secondsRemaining={secondsRemaining}
+        onContinue={continueSession}
+      />
     </div>
   );
 }
