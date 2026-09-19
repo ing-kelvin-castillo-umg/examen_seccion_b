@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Los changesets 002 y 004 insertan las semillas con IDs explícitos, por lo que
+        las secuencias de PostgreSQL quedan en 1 y el primer INSERT de la aplicación
+        (por ejemplo, crear un producto desde el dashboard) falla con
+        "duplicate key value violates unique constraint pk_products".
+        Este changeset alinea cada secuencia con el MAX(id) actual de su tabla.
+    -->
+    <changeSet id="005-1-sync-sequences-with-seed-data" author="umg" dbms="postgresql">
+        <sql>
+            SELECT setval(pg_get_serial_sequence('roles', 'id'),    COALESCE((SELECT MAX(id) FROM roles), 1));
+            SELECT setval(pg_get_serial_sequence('users', 'id'),    COALESCE((SELECT MAX(id) FROM users), 1));
+            SELECT setval(pg_get_serial_sequence('products', 'id'), COALESCE((SELECT MAX(id) FROM products), 1));
+        </sql>
+        <rollback/>
+    </changeSet>
+
+</databaseChangeLog>

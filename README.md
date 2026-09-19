@@ -55,9 +55,14 @@ docker compose up --build
 
 ### Servicios Levantados:
 1. **Frontend**: [http://localhost:3000](http://localhost:3000)
-2. **Backend API**: [http://localhost:8080](http://localhost:8080)
-3. **Swagger UI (Documentación interactiva)**: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
-4. **PostgreSQL**: `localhost:5432` (Base de datos: `examen_db`)
+2. **API (vía proxy BFF de Next.js)**: [http://localhost:3000/api/products](http://localhost:3000/api/products)
+3. **Swagger UI (vía proxy BFF)**: [http://localhost:3000/swagger-ui.html](http://localhost:3000/swagger-ui.html)
+4. **Backend Spring Boot (interno)**: `http://localhost:8080` — solo para depuración; el navegador no lo utiliza.
+5. **PostgreSQL**: `localhost:5432` (Base de datos: `examen_db`)
+
+### 🔀 Pasarela / Proxy Inverso (BFF)
+
+El navegador **nunca** se comunica directamente con Spring Boot. Todas las llamadas del cliente (`ApiClient`) van a rutas locales de Next.js (`/api/...`), y los **Route Handlers** en `frontend/src/app/api/[...path]/route.ts` reenvían la petición al backend usando la variable de entorno de servidor `BACKEND_URL` (en Docker: `http://backend:8080`), propagando método, query string, cuerpo y encabezados (`Authorization`, `Content-Type`, `Accept`). La lógica del proxy vive en `frontend/src/lib/backend-proxy.ts`; Swagger UI y la especificación OpenAPI (`/swagger-ui/**`, `/v3/api-docs/**`) también se sirven a través del proxy.
 
 Para detener los servicios:
 ```bash

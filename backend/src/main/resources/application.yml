@@ -1,5 +1,8 @@
 server:
   port: ${PORT:8080}
+  # Respeta X-Forwarded-Host/Proto enviados por el proxy inverso (BFF) de Next.js,
+  # para que springdoc y las redirecciones usen la URL pública y no la interna.
+  forward-headers-strategy: framework
 
 spring:
   application:
