@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { backendBaseUrl } from "@/lib/server/backend";
-import { setAccessCookie } from "@/lib/server/cookies";
+import { setSessionCookies } from "@/lib/server/cookies";
 
 export const dynamic = "force-dynamic";
 
@@ -18,15 +18,15 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await upstream.json().catch(() => null);
-  if (!upstream.ok || !body?.data?.token) {
+  if (!upstream.ok || !body?.data?.token || !body?.data?.refreshToken) {
     return NextResponse.json(body ?? { success: false, message: "Error de autenticación" }, {
       status: upstream.ok ? 502 : upstream.status,
     });
   }
 
-  // El token viaja solo en cookie httpOnly; al navegador solo le llegan los datos del usuario.
-  const { token, type: _type, ...user } = body.data;
+  // Los tokens viajan solo en cookies httpOnly; al navegador solo le llegan los datos del usuario.
+  const { token, refreshToken, refreshExpiresIn, expiresIn: _expiresIn, type: _type, ...user } = body.data;
   const res = NextResponse.json({ ...body, data: user });
-  setAccessCookie(res, token);
+  setSessionCookies(res, { accessToken: token, refreshToken, refreshExpiresIn });
   return res;
 }

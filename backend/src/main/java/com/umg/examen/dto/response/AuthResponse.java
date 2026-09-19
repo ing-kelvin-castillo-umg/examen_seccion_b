@@ -25,6 +25,15 @@ public class AuthResponse {
     @Schema(description = "Lista de roles asignados", example = "[\"ROLE_ADMIN\"]")
     private List<String> roles;
 
+    @Schema(description = "Refresh token opaco (un solo uso: rota en cada renovación)")
+    private String refreshToken;
+
+    @Schema(description = "Segundos de vida del access token", example = "900")
+    private Long expiresIn;
+
+    @Schema(description = "Segundos de vida del refresh token", example = "604800")
+    private Long refreshExpiresIn;
+
     public AuthResponse() {}
 
     public AuthResponse(String token, String type, String username, String fullName, String email, List<String> roles) {
@@ -82,5 +91,29 @@ public class AuthResponse {
 
     public void setRoles(List<String> roles) {
         this.roles = roles;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
+
+    public Long getExpiresIn() {
+        return expiresIn;
+    }
+
+    public void setExpiresIn(Long expiresIn) {
+        this.expiresIn = expiresIn;
+    }
+
+    public Long getRefreshExpiresIn() {
+        return refreshExpiresIn;
+    }
+
+    public void setRefreshExpiresIn(Long refreshExpiresIn) {
+        this.refreshExpiresIn = refreshExpiresIn;
     }
 }

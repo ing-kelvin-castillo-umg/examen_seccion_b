@@ -17,6 +17,15 @@ export class ApiClient {
         credentials: "same-origin",
       });
 
+      // El BFF ya intentó refrescar la sesión; un 401 aquí significa sesión expirada o revocada.
+      if (
+        response.status === 401 &&
+        typeof window !== "undefined" &&
+        window.location.pathname.startsWith("/dashboard")
+      ) {
+        window.location.href = "/login";
+      }
+
       const data = await response.json();
 
       if (!response.ok) {

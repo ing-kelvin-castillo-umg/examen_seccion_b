@@ -24,12 +24,16 @@ public class JwtTokenProvider {
     @Value("${app.jwt.secret}")
     private String jwtSecret;
 
-    @Value("${app.jwt.expiration-ms:86400000}")
+    @Value("${app.jwt.access-expiration-ms:900000}")
     private long jwtExpirationMs;
 
     private SecretKey getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
         return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    public long getAccessExpirationSeconds() {
+        return jwtExpirationMs / 1000;
     }
 
     public String generateToken(Authentication authentication) {

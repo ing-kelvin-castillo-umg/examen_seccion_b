@@ -97,13 +97,42 @@ La aplicación estará disponible en [http://localhost:3000](http://localhost:30
 
 | Método | Endpoint | Descripción | Acceso |
 | :--- | :--- | :--- | :--- |
-| `POST` | `/api/auth/login` | Iniciar sesión y obtener token JWT | Público |
+| `POST` | `/api/auth/login` | Iniciar sesión: devuelve access token (JWT corto) y refresh token | Público |
+| `POST` | `/api/auth/refresh` | Renovar sesión con rotación del refresh token | Público (requiere refresh token válido) |
 | `GET` | `/api/auth/me` | Obtener perfil del usuario en sesión | Autenticado |
 | `GET` | `/api/products` | Listar productos (con soporte `?query=`) | Público / Carrusel |
 | `GET` | `/api/products/{id}` | Obtener detalle de un producto por ID | Público / Autenticado |
 | `POST` | `/api/products` | Crear un nuevo producto | **ROLE_ADMIN** |
 | `PUT` | `/api/products/{id}` | Modificar un producto existente | **ROLE_ADMIN** |
 | `DELETE` | `/api/products/{id}` | Eliminar un producto | **ROLE_ADMIN** |
+
+---
+
+## 🔐 Política de sesión y refresh token
+
+| Elemento | Detalle |
+| :--- | :--- |
+| **Access token** | JWT firmado (HS256), vida corta: **15 min** por defecto (`JWT_ACCESS_EXPIRATION_MS`). Sin estado en el servidor. |
+| **Refresh token** | Cadena **opaca** aleatoria (256 bits, `SecureRandom`), vida **7 días** por defecto (`JWT_REFRESH_EXPIRATION_MS`). |
+| **Almacenamiento** | En la tabla `refresh_tokens` (changelog `005`) solo se guarda el **hash SHA-256**, el usuario, la expiración y el indicador `revoked`. El valor en claro nunca se persiste. |
+| **Rotación** | Cada `POST /api/auth/refresh` revoca el refresh token usado y entrega uno nuevo junto con un access token nuevo. Cada refresh token sirve **una sola vez**. |
+| **Revocación** | Un refresh token expirado, inexistente o revocado devuelve `401`. Si se **reutiliza** uno ya usado (posible robo), se revocan todos los refresh tokens del usuario. |
+| **Cookies (BFF)** | Ambos tokens viajan solo en cookies `httpOnly` + `SameSite=Lax` (`Secure` según `COOKIE_SECURE`). El navegador nunca los ve ni los guarda en `localStorage`. La cookie del refresh token solo se envía a rutas `/api`. |
+
+**Renovación transparente en el BFF de Next.js** (`frontend/src/lib/server/session.ts` y `src/app/api/[...path]/route.ts`):
+
+1. Si al llegar una petición falta la cookie de acceso, o le quedan menos de 10 s, el BFF llama **una vez** a `/api/auth/refresh`. Si no, envía la petición y, si el backend responde `401`, refresca y **reintenta una sola vez**.
+2. Las peticiones concurrentes con el mismo refresh token comparten una única llamada (*single-flight*), para no rotar el token dos veces.
+3. Con el resultado se actualizan las cookies en la respuesta. En el log del servidor aparece `[BFF] token refrescado` (nunca se registran tokens).
+4. Si el refresh falla (expirado o revocado) se limpian las cookies y la petición protegida responde `401`; el frontend redirige a `/login`. Si el backend no está disponible (5xx o sin conexión) se responde `502` **sin** cerrar la sesión.
+
+**Modo demo (access token de 60 s)**, sin tocar código (PowerShell):
+
+```powershell
+$env:JWT_ACCESS_EXPIRATION_MS=60000; docker compose up --build -d
+```
+
+Para volver al valor por defecto: `Remove-Item Env:JWT_ACCESS_EXPIRATION_MS; docker compose up -d`.
 
 ---
 
@@ -138,7 +167,8 @@ app_segundo_parcial/
 │       │           ├── 001-create-users-roles.xml
 │       │           ├── 002-insert-roles-users.xml
 │       │           ├── 003-create-products.xml
-│       │           └── 004-insert-initial-products.xml
+│       │           ├── 004-insert-initial-products.xml
+│       │           └── 005-create-refresh-tokens.xml
 │       └── test/java/com/umg/examen/PasswordEncoderTest.java
 ├── frontend/
 │   ├── Dockerfile
