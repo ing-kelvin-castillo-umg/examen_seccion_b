@@ -55,8 +55,8 @@ docker compose up --build
 
 ### Servicios Levantados:
 1. **Frontend**: [http://localhost:3000](http://localhost:3000)
-2. **Backend API**: [http://localhost:8080](http://localhost:8080)
-3. **Swagger UI (Documentación interactiva)**: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+2. **API mediante BFF de Next.js**: [http://localhost:3000/api/products](http://localhost:3000/api/products)
+3. **Swagger UI mediante BFF**: [http://localhost:3000/api/docs/swagger-ui/index.html](http://localhost:3000/api/docs/swagger-ui/index.html)
 4. **PostgreSQL**: `localhost:5432` (Base de datos: `examen_db`)
 
 Para detener los servicios:
