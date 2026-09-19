@@ -1,28 +1,34 @@
 # Stage 1: Build
 FROM maven:3.9.6-eclipse-temurin-21-alpine AS builder
-
 WORKDIR /app
 
-# Copiar configuración de dependencias para aprovechar caché de capas
+# Descargar dependencias aprovechando la capa y el cache mount de BuildKit
 COPY pom.xml .
-RUN mvn dependency:go-offline -B || true
+RUN --mount=type=cache,target=/root/.m2 mvn dependency:go-offline -B || true
 
-# Copiar código fuente y compilar
+# Copiar código fuente y compilar empaquetando el jar sin tests
 COPY src ./src
-RUN mvn clean package -DskipTests
+RUN --mount=type=cache,target=/root/.m2 mvn package -DskipTests
 
 # Stage 2: Runtime
 FROM eclipse-temurin:21-jre-alpine
-
 WORKDIR /app
 
-# Crear usuario sin privilegios para mayor seguridad
+# Crear usuario y grupo sin privilegios
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-USER appuser
 
-# Copiar el jar generado desde la etapa de construcción
-COPY --from=builder /app/target/*.jar app.jar
+# Copiar el jar generado con los permisos adecuados
+COPY --from=builder --chown=appuser:appgroup /app/target/*.jar app.jar
+
+USER appuser
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
+# Flags JVM recomendadas para contenedores
+ENTRYPOINT ["java", \
+  "-XX:+UseContainerSupport", \
+  "-XX:MaxRAMPercentage=75.0", \
+  "-XX:+ExitOnOutOfMemoryError", \
+  "-Djava.security.egd=file:/dev/./urandom", \
+  "-jar", "app.jar"]
+
