@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -11,11 +11,25 @@ import {
   ArrowRight,
   ShieldCheck,
   AlertCircle,
+  Info,
   Loader2,
   ChevronLeft,
 } from "lucide-react";
 
+const SESSION_NOTICE_MESSAGES: Record<string, string> = {
+  session_expired: "Tu sesión expiró. Inicia sesión nuevamente.",
+  inactivity: "Sesión cerrada por inactividad.",
+};
+
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -23,6 +37,8 @@ export default function LoginPage() {
 
   const { login } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const sessionNotice = SESSION_NOTICE_MESSAGES[searchParams.get("reason") || ""];
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,6 +119,14 @@ export default function LoginPage() {
             </button>
           </div>
         </div>
+
+        {/* Session Notice (expired / closed by inactivity) */}
+        {sessionNotice && !error && (
+          <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-300 flex items-center gap-2">
+            <Info className="w-4 h-4 shrink-0" />
+            <span>{sessionNotice}</span>
+          </div>
+        )}
 
         {/* Error Notification */}
         {error && (
