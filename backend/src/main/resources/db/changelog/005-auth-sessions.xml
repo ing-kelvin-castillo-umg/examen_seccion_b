@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+  <changeSet id="005-auth-sessions" author="fernanda">
+    <sql>
+      CREATE TABLE auth_sessions (
+        id VARCHAR(36) PRIMARY KEY,
+        username VARCHAR(50) NOT NULL REFERENCES users(username),
+        refresh_hash VARCHAR(64) NOT NULL UNIQUE,
+        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+        revoked_at TIMESTAMP WITH TIME ZONE,
+        revoke_reason VARCHAR(30)
+      );
+    </sql>
+  </changeSet>
+</databaseChangeLog>

@@ -9,6 +9,12 @@ public class AuthResponse {
 
     @Schema(description = "Token de acceso JWT")
     private String token;
+    private String refreshToken;
+    private long expiresIn;
+    public String getRefreshToken() { return refreshToken; }
+    public void setRefreshToken(String value) { refreshToken = value; }
+    public long getExpiresIn() { return expiresIn; }
+    public void setExpiresIn(long value) { expiresIn = value; }
 
     @Schema(description = "Tipo de token", example = "Bearer")
     private String type = "Bearer";

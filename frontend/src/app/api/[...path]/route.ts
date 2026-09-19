@@ -8,7 +8,7 @@ async function proxy(request: NextRequest) {
 
   // Permitir únicamente las rutas de autenticación y productos.
   const allowedPath =
-    /^\/api\/(auth\/(login|me)|products(?:\/\d+)?)$/;
+    /^\/api\/(auth\/(login|me|refresh)|products(?:\/\d+)?)$/;
 
   if (!allowedPath.test(path)) {
     return Response.json(

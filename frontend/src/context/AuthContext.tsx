@@ -4,6 +4,8 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { User } from "@/entities/user.entity";
 import { AuthService } from "@/services/auth.service";
 import { useRouter } from "next/navigation";
+import { ApiClient } from "@/services/api.client";
+import { SESSION_EVENT } from "@/services/session.store";
 
 interface AuthContextType {
   user: User | null;
@@ -24,12 +26,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const router = useRouter();
 
   useEffect(() => {
-    const session = AuthService.getStoredSession();
-    if (session) {
-      setUser(session.user);
-      setToken(session.token);
-    }
-    setLoading(false);
+    const sync = () => {
+      const session = AuthService.getStoredSession();
+      setUser(session?.user || null); setToken(session?.token || null);
+      setLoading(false);
+    };
+    sync();
+    window.addEventListener(SESSION_EVENT, sync);
+    window.addEventListener("storage", sync);
+    const timer = window.setInterval(() => {
+      if (AuthService.getStoredSession()) ApiClient.refresh().catch(() => {});
+    }, 5000);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener(SESSION_EVENT, sync);
+      window.removeEventListener("storage", sync);
+    };
   }, []);
 
   const login = async (username: string, password: string) => {

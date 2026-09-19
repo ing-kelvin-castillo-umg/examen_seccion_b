@@ -23,11 +23,13 @@ public class AuthServiceImpl implements AuthService {
     private final JwtTokenProvider tokenProvider;
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final com.umg.examen.service.SessionService sessions;
 
     public AuthServiceImpl(AuthenticationManager authenticationManager,
                            JwtTokenProvider tokenProvider,
                            UserRepository userRepository,
-                           UserMapper userMapper) {
+                           UserMapper userMapper, com.umg.examen.service.SessionService sessions) {
+        this.sessions = sessions;
         this.authenticationManager = authenticationManager;
         this.tokenProvider = tokenProvider;
         this.userRepository = userRepository;
@@ -35,19 +37,19 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public AuthResponse login(LoginRequest request) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
         );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        String token = tokenProvider.generateToken(authentication);
+
 
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + request.getUsername()));
 
-        return userMapper.toAuthResponse(user, token);
+        return sessions.create(user);
     }
 
     @Override

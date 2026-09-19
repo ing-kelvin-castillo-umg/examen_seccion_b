@@ -63,6 +63,15 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    public long getExpirationMs() { return jwtExpirationMs; }
+
+    public String generateSessionToken(String username, List<String> roles, String sessionId) {
+        Date now = new Date();
+        return Jwts.builder().subject(username).claim("roles", roles).claim("sid", sessionId)
+            .id(java.util.UUID.randomUUID().toString()).issuedAt(now)
+            .expiration(new Date(now.getTime() + jwtExpirationMs)).signWith(getSigningKey()).compact();
+    }
+
     public String getUsernameFromJwt(String token) {
         return Jwts.parser()
                 .verifyWith(getSigningKey())

@@ -19,8 +19,10 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final com.umg.examen.service.SessionService sessions;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, com.umg.examen.service.SessionService sessions) {
+        this.sessions = sessions;
         this.authService = authService;
     }
 
@@ -29,6 +31,11 @@ public class AuthController {
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
         AuthResponse authResponse = authService.login(request);
         return ResponseEntity.ok(ApiResponse.success("Inicio de sesión exitoso", authResponse));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<AuthResponse>> refresh(@Valid @RequestBody com.umg.examen.dto.request.RefreshRequest request) {
+        return ResponseEntity.ok(ApiResponse.success("Token renovado", sessions.refresh(request.refreshToken())));
     }
 
     @GetMapping("/me")
