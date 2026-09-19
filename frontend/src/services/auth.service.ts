@@ -23,6 +23,19 @@ export class AuthService {
     return AuthMapper.toUserFromResponse(response.data);
   }
 
+  // Notifica al backend para invalidar el refresh token del lado del servidor.
+  // Best-effort: si falla (sin red, token ya invalido, etc.) igual se limpia la sesión local.
+  static async logoutFromBackend(): Promise<void> {
+    const refreshToken = typeof window !== "undefined" ? localStorage.getItem("refreshToken") : null;
+    if (!refreshToken) return;
+
+    try {
+      await ApiClient.post("/api/auth/logout", { refreshToken });
+    } catch {
+      // Ignorado a propósito: el logout local debe continuar de todas formas
+    }
+  }
+
   static logout(): void {
     if (typeof window !== "undefined") {
       localStorage.removeItem("token");
