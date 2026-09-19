@@ -11,9 +11,28 @@ export class AuthService {
 
     if (typeof window !== "undefined") {
       localStorage.setItem("token", session.token);
+      localStorage.setItem("refreshToken", session.refreshToken);
+      localStorage.setItem("expiresAt", String(session.expiresAt));
       localStorage.setItem("user", JSON.stringify(session.user));
     }
 
+    return session;
+  }
+
+  static async refresh(): Promise<AuthSession> {
+    const refreshToken = typeof window !== "undefined" ? localStorage.getItem("refreshToken") : null;
+    if (!refreshToken) {
+      throw new Error("No existe un refresh token activo");
+    }
+
+    const response = await ApiClient.post<AuthResponseDto>("/api/auth/refresh", { refreshToken });
+    const session = AuthMapper.toSession(response.data);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("token", session.token);
+      localStorage.setItem("refreshToken", session.refreshToken);
+      localStorage.setItem("expiresAt", String(session.expiresAt));
+      localStorage.setItem("user", JSON.stringify(session.user));
+    }
     return session;
   }
 
@@ -22,9 +41,17 @@ export class AuthService {
     return AuthMapper.toUserFromResponse(response.data);
   }
 
-  static logout(): void {
+  static async logout(): Promise<void> {
     if (typeof window !== "undefined") {
+      const refreshToken = localStorage.getItem("refreshToken");
+      try {
+        await ApiClient.post<void>("/api/auth/logout", { refreshToken });
+      } catch (error) {
+        console.warn("[AUTH] No se pudo notificar el logout al backend", error);
+      }
       localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("expiresAt");
       localStorage.removeItem("user");
     }
   }
@@ -33,14 +60,18 @@ export class AuthService {
     if (typeof window === "undefined") return null;
 
     const token = localStorage.getItem("token");
+    const refreshToken = localStorage.getItem("refreshToken");
+    const expiresAt = Number(localStorage.getItem("expiresAt") || 0);
     const userStr = localStorage.getItem("user");
 
-    if (!token || !userStr) return null;
+    if (!token || !refreshToken || !userStr) return null;
 
     try {
       const user = JSON.parse(userStr) as User;
       return {
         token,
+        refreshToken,
+        expiresAt,
         user,
         isAuthenticated: true,
         isAdmin: user.roles?.includes("ROLE_ADMIN") || false,

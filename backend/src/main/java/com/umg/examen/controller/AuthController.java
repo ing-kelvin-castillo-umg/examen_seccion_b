@@ -1,6 +1,7 @@
 package com.umg.examen.controller;
 
 import com.umg.examen.dto.request.LoginRequest;
+import com.umg.examen.dto.request.RefreshTokenRequest;
 import com.umg.examen.dto.response.ApiResponse;
 import com.umg.examen.dto.response.AuthResponse;
 import com.umg.examen.dto.response.UserResponse;
@@ -29,6 +30,26 @@ public class AuthController {
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
         AuthResponse authResponse = authService.login(request);
         return ResponseEntity.ok(ApiResponse.success("Inicio de sesión exitoso", authResponse));
+    }
+
+    @PostMapping("/refresh")
+    @Operation(summary = "Renovar access token", description = "Rota el refresh token y devuelve un nuevo access token de corta duración")
+    public ResponseEntity<ApiResponse<AuthResponse>> refresh(@RequestBody RefreshTokenRequest request) {
+        AuthResponse authResponse = authService.refresh(request);
+        return ResponseEntity.ok(ApiResponse.success("Token renovado exitosamente", authResponse));
+    }
+
+    @PostMapping("/logout")
+    @Operation(summary = "Cerrar sesión", description = "Revoca el refresh token y finaliza la sesión activa")
+    public ResponseEntity<ApiResponse<Void>> logout(
+            @RequestBody(required = false) RefreshTokenRequest request,
+            Authentication authentication) {
+        String refreshToken = request != null ? request.getRefreshToken() : null;
+        String username = authentication != null && authentication.isAuthenticated()
+                ? authentication.getName()
+                : null;
+        authService.logout(refreshToken, username);
+        return ResponseEntity.ok(ApiResponse.success("Sesión cerrada exitosamente", null));
     }
 
     @GetMapping("/me")

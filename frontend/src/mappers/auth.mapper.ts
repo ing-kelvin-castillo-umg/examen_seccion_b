@@ -14,6 +14,8 @@ export class AuthMapper {
 
     return {
       token: dto.token,
+      refreshToken: dto.refreshToken,
+      expiresAt: Date.now() + (dto.expiresIn || 120) * 1000,
       user: user,
       isAuthenticated: !!dto.token,
       isAdmin: roles.includes("ROLE_ADMIN"),

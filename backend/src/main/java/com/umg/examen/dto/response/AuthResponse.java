@@ -4,11 +4,17 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 
-@Schema(description = "Respuesta de autenticación con Token JWT")
+@Schema(description = "Respuesta de autenticación con access token y refresh token")
 public class AuthResponse {
 
     @Schema(description = "Token de acceso JWT")
     private String token;
+
+    @Schema(description = "Refresh token opaco para renovar el access token")
+    private String refreshToken;
+
+    @Schema(description = "Tiempo de vida del access token en segundos")
+    private long expiresIn;
 
     @Schema(description = "Tipo de token", example = "Bearer")
     private String type = "Bearer";
@@ -42,6 +48,22 @@ public class AuthResponse {
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
+
+    public long getExpiresIn() {
+        return expiresIn;
+    }
+
+    public void setExpiresIn(long expiresIn) {
+        this.expiresIn = expiresIn;
     }
 
     public String getType() {
