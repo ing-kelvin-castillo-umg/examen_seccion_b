@@ -80,33 +80,33 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100">
+    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 catalog-shell">
       <Navbar />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 space-y-16">
         {/* Hero Section */}
-        <section className="text-center space-y-5 max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold tracking-wide">
+        <section className="text-center space-y-5 max-w-4xl mx-auto">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 text-xs font-semibold tracking-wide">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Universidad Mariano Gálvez de Guatemala • Segundo Parcial</span>
           </div>
 
           <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-white leading-tight">
-            Gestión y Catálogo de{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-sky-300 to-indigo-400">
-              Productos
+            Descubre tu próxima{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-emerald-300 to-amber-400">
+              herramienta favorita
             </span>
           </h1>
 
           <p className="text-slate-400 text-base sm:text-lg leading-relaxed">
-            Plataforma monorepo moderna desarrollada con Spring Boot (Java 21), PostgreSQL con Liquibase, autenticación basada en JWT con control de roles, y frontend en Next.js con React.
+            Tecnología para estudiar, crear y avanzar. Explora nuestros productos y encuentra lo que necesitas en un solo lugar.
           </p>
 
           <div className="pt-2 flex flex-wrap items-center justify-center gap-4">
             {isAuthenticated ? (
               <Link
                 href="/dashboard/products"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-lg shadow-blue-600/30 transition-all hover:scale-105"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-semibold text-sm shadow-lg shadow-teal-600/30 transition-all hover:scale-105"
               >
                 <span>Acceder al Panel Privado</span>
                 <ArrowRight className="w-4 h-4" />
@@ -115,7 +115,7 @@ export default function HomePage() {
               <>
                 <Link
                   href="/login"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-lg shadow-blue-600/30 transition-all hover:scale-105"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-semibold text-sm shadow-lg shadow-teal-600/30 transition-all hover:scale-105"
                 >
                   <span>Iniciar Sesión</span>
                   <ArrowRight className="w-4 h-4" />
@@ -148,17 +148,17 @@ export default function HomePage() {
         {/* Architecture & Roles Features */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
           <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-teal-500/10 text-teal-400 flex items-center justify-center">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <h3 className="text-base font-bold text-white">Seguridad &amp; Roles JWT</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Control de acceso con roles <span className="text-blue-300 font-mono">ROLE_ADMIN</span> y <span className="text-emerald-300 font-mono">ROLE_USER</span>. Permisos diferenciados para consulta y mutación de inventario.
+              Control de acceso con roles <span className="text-teal-300 font-mono">ROLE_ADMIN</span> y <span className="text-emerald-300 font-mono">ROLE_USER</span>. Permisos diferenciados para consulta y mutación de inventario.
             </p>
           </div>
 
           <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
               <Database className="w-5 h-5" />
             </div>
             <h3 className="text-base font-bold text-white">PostgreSQL &amp; Liquibase</h3>

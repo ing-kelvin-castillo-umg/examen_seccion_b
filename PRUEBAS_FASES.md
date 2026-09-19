@@ -24,3 +24,10 @@
 - Para evidencia: Network → Keep log, dejar el panel sin tocar por dos minutos.
   Capturar el mensaje «Sesión cerrada por inactividad» y POST /api/auth/logout → 200.
 - Prueba automatizada: node tests/auth-smoke.mjs --logout --expiry
+
+## Fase 4: diseño
+- Paleta bosque/jade con acentos ámbar y fondos claros cálidos.
+- Carrusel con controles separados del texto; tabla con cabecera contrastada y filas alternas.
+- Resumen de productos, unidades y categorías calculado con datos reales.
+- Sidebar apilado en pantallas pequeñas, tabla desplazable y foco visible con teclado.
+- Capturar carrusel y DataTable antes/después con el mismo tamaño de ventana.

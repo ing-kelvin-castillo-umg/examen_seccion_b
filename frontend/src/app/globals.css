@@ -38,3 +38,10 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* Fase 4: bosque, jade y ámbar; foco visible y movimiento accesible. */
+:root { --foreground-rgb: 16,42,34; --background-start-rgb: 247,248,243; }
+::selection { background: #99f6e4; color: #102a22; }
+.catalog-shell { background-image: radial-gradient(ellipse at 15% 0%, #134e4a66, transparent 50%), radial-gradient(ellipse at 95% 45%, #78350f33, transparent 45%); }
+button:focus-visible, a:focus-visible { outline: 3px solid #14b8a6; outline-offset: 4px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; } }

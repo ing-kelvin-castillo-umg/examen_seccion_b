@@ -128,7 +128,7 @@ export default function ProductsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">
-            <Boxes className="w-4 h-4 text-blue-600" />
+            <Boxes className="w-4 h-4 text-teal-600" />
             <span>Módulo de Inventario</span>
           </div>
           <h1 className="text-3xl font-black text-slate-900 tracking-tight">
@@ -147,12 +147,12 @@ export default function ProductsPage() {
             title="Recargar listado"
             className="p-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-600 transition-colors shadow-sm disabled:opacity-50"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-blue-600" : ""}`} />
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-teal-600" : ""}`} />
           </button>
 
           <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-200 shadow-sm text-xs font-semibold text-slate-700">
             {isAdmin ? (
-              <ShieldCheck className="w-4 h-4 text-indigo-600" />
+              <ShieldCheck className="w-4 h-4 text-amber-600" />
             ) : (
               <UserIcon className="w-4 h-4 text-emerald-600" />
             )}
@@ -160,7 +160,7 @@ export default function ProductsPage() {
             <span
               className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${
                 isAdmin
-                  ? "bg-indigo-100 text-indigo-800"
+                  ? "bg-amber-100 text-amber-800"
                   : "bg-emerald-100 text-emerald-800"
               }`}
             >
@@ -170,6 +170,11 @@ export default function ProductsPage() {
         </div>
       </div>
 
+      <section aria-label="Resumen del inventario" className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="rounded-2xl border border-teal-200 bg-white p-5 shadow-sm"><p className="text-xs uppercase tracking-wider text-slate-600">Productos en catálogo</p><p className="mt-2 text-3xl font-black text-teal-800">{products.length}</p></div>
+        <div className="rounded-2xl border border-teal-200 bg-white p-5 shadow-sm"><p className="text-xs uppercase tracking-wider text-slate-600">Unidades disponibles</p><p className="mt-2 text-3xl font-black text-teal-800">{products.reduce((total,p) => total+p.stock,0)}</p></div>
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-sm"><p className="text-xs uppercase tracking-wider text-amber-900">Categorías</p><p className="mt-2 text-3xl font-black text-amber-900">{new Set(products.map(p=>p.category)).size}</p></div>
+      </section>
       {/* Main DataTable */}
       <DataTable
         products={products}
