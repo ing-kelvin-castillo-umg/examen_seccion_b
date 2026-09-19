@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
@@ -23,6 +23,15 @@ export default function LoginPage() {
 
   const { login } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    const reason = sessionStorage.getItem("logoutReason");
+
+    if (reason) {
+      setError(reason);
+      sessionStorage.removeItem("logoutReason");
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

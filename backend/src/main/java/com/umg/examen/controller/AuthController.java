@@ -51,6 +51,20 @@ public class AuthController {
         );
     }
 
+    @PostMapping("/logout")
+    @Operation(
+        summary = "Cerrar sesión",
+        description = "Registra el cierre de sesión solicitado por el cliente"
+    )
+    public ResponseEntity<ApiResponse<Void>> logout() {
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Sesión cerrada correctamente",
+                        null
+                )
+        );
+    }
+
     @GetMapping("/me")
     @SecurityRequirement(name = "Bearer Authentication")
     @Operation(summary = "Obtener usuario actual", description = "Retorna los datos del usuario autenticado a través del token JWT")
