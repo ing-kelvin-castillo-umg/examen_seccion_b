@@ -32,6 +32,9 @@ public class User {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Column(name = "refresh_token_version", nullable = false)
+    private Integer refreshTokenVersion = 0;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "user_roles",
@@ -107,6 +110,14 @@ public class User {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Integer getRefreshTokenVersion() {
+        return refreshTokenVersion;
+    }
+
+    public void setRefreshTokenVersion(Integer refreshTokenVersion) {
+        this.refreshTokenVersion = refreshTokenVersion;
     }
 
     public Set<Role> getRoles() {

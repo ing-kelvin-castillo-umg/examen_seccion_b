@@ -10,6 +10,15 @@ public class AuthResponse {
     @Schema(description = "Token de acceso JWT")
     private String token;
 
+    @Schema(description = "Token JWT usado exclusivamente para renovar la sesión")
+    private String refreshToken;
+
+    @Schema(description = "Duración del access token en milisegundos", example = "300000")
+    private long accessTokenExpiresInMs;
+
+    @Schema(description = "Duración del refresh token en milisegundos", example = "604800000")
+    private long refreshTokenExpiresInMs;
+
     @Schema(description = "Tipo de token", example = "Bearer")
     private String type = "Bearer";
 
@@ -42,6 +51,30 @@ public class AuthResponse {
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
+
+    public long getAccessTokenExpiresInMs() {
+        return accessTokenExpiresInMs;
+    }
+
+    public void setAccessTokenExpiresInMs(long accessTokenExpiresInMs) {
+        this.accessTokenExpiresInMs = accessTokenExpiresInMs;
+    }
+
+    public long getRefreshTokenExpiresInMs() {
+        return refreshTokenExpiresInMs;
+    }
+
+    public void setRefreshTokenExpiresInMs(long refreshTokenExpiresInMs) {
+        this.refreshTokenExpiresInMs = refreshTokenExpiresInMs;
     }
 
     public String getType() {

@@ -1,6 +1,8 @@
-import { ApiResponseDto } from "@/dtos/auth.dto";
+import { ApiResponseDto, AuthResponseDto } from "@/dtos/auth.dto";
 
 export class ApiClient {
+  private static refreshPromise: Promise<string> | null = null;
+
   private static getToken(): string | null {
     if (typeof window !== "undefined") {
       return localStorage.getItem("token");
@@ -8,7 +10,74 @@ export class ApiClient {
     return null;
   }
 
-  static async request<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponseDto<T>> {
+  private static getRefreshToken(): string | null {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("refreshToken");
+    }
+    return null;
+  }
+
+  private static canRefresh(endpoint: string): boolean {
+    return endpoint !== "/api/auth/login" && endpoint !== "/api/auth/refresh";
+  }
+
+  private static clearExpiredSession(): void {
+    if (typeof window === "undefined") return;
+
+    localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+    window.dispatchEvent(new Event("auth:session-expired"));
+
+    if (window.location.pathname !== "/login") {
+      window.location.assign("/login");
+    }
+  }
+
+  private static async performRefresh(): Promise<string> {
+    const refreshToken = this.getRefreshToken();
+    if (!refreshToken) {
+      throw new Error("La sesión no tiene un refresh token válido");
+    }
+
+    const response = await fetch("/api/auth/refresh", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ refreshToken }),
+    });
+    const payload = (await response.json()) as ApiResponseDto<AuthResponseDto>;
+
+    if (!response.ok || !payload.success || !payload.data?.token || !payload.data?.refreshToken) {
+      throw new Error(payload.message || "No fue posible renovar la sesión");
+    }
+
+    localStorage.setItem("token", payload.data.token);
+    localStorage.setItem("refreshToken", payload.data.refreshToken);
+    window.dispatchEvent(
+      new CustomEvent("auth:token-refreshed", { detail: { token: payload.data.token } }),
+    );
+
+    return payload.data.token;
+  }
+
+  private static refreshAccessToken(): Promise<string> {
+    if (!this.refreshPromise) {
+      this.refreshPromise = this.performRefresh().finally(() => {
+        this.refreshPromise = null;
+      });
+    }
+
+    return this.refreshPromise;
+  }
+
+  static async request<T>(
+    endpoint: string,
+    options: RequestInit = {},
+    allowRefresh = true,
+  ): Promise<ApiResponseDto<T>> {
     const url = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
     const token = this.getToken();
 
@@ -27,6 +96,20 @@ export class ApiClient {
         ...options,
         headers,
       });
+
+      if (response.status === 401 && this.canRefresh(endpoint)) {
+        if (allowRefresh && this.getRefreshToken()) {
+          try {
+            await this.refreshAccessToken();
+            return this.request<T>(endpoint, options, false);
+          } catch (refreshError) {
+            this.clearExpiredSession();
+            throw refreshError;
+          }
+        }
+
+        this.clearExpiredSession();
+      }
 
       const data = await response.json();
 
