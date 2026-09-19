@@ -1,6 +1,6 @@
 import { ApiResponseDto } from "@/dtos/auth.dto";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+// En el cliente, las peticiones apuntan a la ruta relativa ("") para pasar por el BFF de Next.js
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 export class ApiClient {
   private static getToken(): string | null {

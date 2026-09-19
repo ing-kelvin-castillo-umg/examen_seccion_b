@@ -14,8 +14,8 @@ COPY . .
 # Deshabilitar telemetría de Next.js en build
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# URL pública de la API durante build
-ARG NEXT_PUBLIC_API_URL=http://localhost:8080
+# URL pública de la API durante build (vacío para usar el BFF relativo)
+ARG NEXT_PUBLIC_API_URL=""
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
 # Compilar Next.js utilizando cache mount para acelerar builds repetidos
