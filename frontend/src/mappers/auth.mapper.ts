@@ -14,10 +14,12 @@ export class AuthMapper {
 
     return {
       token: dto.token,
+      refreshToken: dto.refreshToken,
       user: user,
       isAuthenticated: !!dto.token,
       isAdmin: roles.includes("ROLE_ADMIN"),
     };
+
   }
 
   static toUserFromResponse(dto: UserResponseDto): User {

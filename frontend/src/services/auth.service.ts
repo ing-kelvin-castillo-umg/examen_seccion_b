@@ -11,6 +11,9 @@ export class AuthService {
 
     if (typeof window !== "undefined") {
       localStorage.setItem("token", session.token);
+      if (session.refreshToken) {
+        localStorage.setItem("refreshToken", session.refreshToken);
+      }
       localStorage.setItem("user", JSON.stringify(session.user));
     }
 
@@ -22,9 +25,44 @@ export class AuthService {
     return AuthMapper.toUserFromResponse(response.data);
   }
 
+  static async refreshToken(): Promise<string> {
+    if (typeof window === "undefined") {
+      throw new Error("No es posible refrescar token fuera del navegador");
+    }
+
+    const currentRefreshToken = localStorage.getItem("refreshToken");
+    if (!currentRefreshToken) {
+      this.logout();
+      throw new Error("No hay refresh token almacenado");
+    }
+
+    try {
+      const response = await ApiClient.rawRequest<AuthResponseDto>("/api/auth/refresh", {
+        method: "POST",
+        body: JSON.stringify({ refreshToken: currentRefreshToken }),
+      });
+
+      const newToken = response.data?.token;
+      if (!newToken) {
+        throw new Error("El servidor no retornó un nuevo token de acceso");
+      }
+
+      localStorage.setItem("token", newToken);
+      if (response.data.refreshToken) {
+        localStorage.setItem("refreshToken", response.data.refreshToken);
+      }
+
+      return newToken;
+    } catch (error) {
+      this.logout();
+      throw error;
+    }
+  }
+
   static logout(): void {
     if (typeof window !== "undefined") {
       localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
       localStorage.removeItem("user");
     }
   }
@@ -33,6 +71,7 @@ export class AuthService {
     if (typeof window === "undefined") return null;
 
     const token = localStorage.getItem("token");
+    const refreshToken = localStorage.getItem("refreshToken") || undefined;
     const userStr = localStorage.getItem("user");
 
     if (!token || !userStr) return null;
@@ -41,6 +80,7 @@ export class AuthService {
       const user = JSON.parse(userStr) as User;
       return {
         token,
+        refreshToken,
         user,
         isAuthenticated: true,
         isAdmin: user.roles?.includes("ROLE_ADMIN") || false,
@@ -50,3 +90,4 @@ export class AuthService {
     }
   }
 }
+

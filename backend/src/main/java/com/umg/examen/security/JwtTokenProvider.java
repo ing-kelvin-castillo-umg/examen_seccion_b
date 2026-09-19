@@ -24,8 +24,15 @@ public class JwtTokenProvider {
     @Value("${app.jwt.secret}")
     private String jwtSecret;
 
-    @Value("${app.jwt.expiration-ms:86400000}")
+    @Value("${app.jwt.expiration-ms:900000}")
     private long jwtExpirationMs;
+
+    @Value("${app.jwt.refresh-expiration-ms:604800000}")
+    private long refreshExpirationMs;
+
+    public static final String CLAIM_TOKEN_TYPE = "tokenType";
+    public static final String TOKEN_TYPE_ACCESS = "ACCESS";
+    public static final String TOKEN_TYPE_REFRESH = "REFRESH";
 
     private SecretKey getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
@@ -44,6 +51,7 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .subject(userPrincipal.getUsername())
                 .claim("roles", roles)
+                .claim(CLAIM_TOKEN_TYPE, TOKEN_TYPE_ACCESS)
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(getSigningKey())
@@ -57,6 +65,25 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .subject(username)
                 .claim("roles", roles)
+                .claim(CLAIM_TOKEN_TYPE, TOKEN_TYPE_ACCESS)
+                .issuedAt(now)
+                .expiration(expiryDate)
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    public String generateRefreshToken(Authentication authentication) {
+        UserDetails userPrincipal = (UserDetails) authentication.getPrincipal();
+        return generateRefreshTokenFromUsername(userPrincipal.getUsername());
+    }
+
+    public String generateRefreshTokenFromUsername(String username) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + refreshExpirationMs);
+
+        return Jwts.builder()
+                .subject(username)
+                .claim(CLAIM_TOKEN_TYPE, TOKEN_TYPE_REFRESH)
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(getSigningKey())
@@ -74,20 +101,33 @@ public class JwtTokenProvider {
 
     public boolean validateToken(String authToken) {
         try {
-            Jwts.parser()
+            Claims claims = Jwts.parser()
                     .verifyWith(getSigningKey())
                     .build()
-                    .parseSignedClaims(authToken);
-            return true;
-        } catch (SecurityException | MalformedJwtException e) {
-            log.error("Firma JWT inválida: {}", e.getMessage());
-        } catch (ExpiredJwtException e) {
-            log.error("Token JWT expirado: {}", e.getMessage());
-        } catch (UnsupportedJwtException e) {
-            log.error("Token JWT no soportado: {}", e.getMessage());
-        } catch (IllegalArgumentException e) {
-            log.error("La cadena de claims JWT está vacía: {}", e.getMessage());
+                    .parseSignedClaims(authToken)
+                    .getPayload();
+            String tokenType = claims.get(CLAIM_TOKEN_TYPE, String.class);
+            return tokenType == null || TOKEN_TYPE_ACCESS.equals(tokenType);
+        } catch (JwtException | IllegalArgumentException e) {
+            log.error("Token JWT inválido o expirado: {}", e.getMessage());
+            return false;
         }
-        return false;
+    }
+
+    public boolean validateRefreshToken(String token) {
+        try {
+            Claims claims = Jwts.parser()
+                    .verifyWith(getSigningKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+            String tokenType = claims.get(CLAIM_TOKEN_TYPE, String.class);
+            return TOKEN_TYPE_REFRESH.equals(tokenType);
+        } catch (JwtException | IllegalArgumentException e) {
+            log.error("Refresh Token JWT inválido o expirado: {}", e.getMessage());
+            return false;
+        }
     }
 }
+
+

@@ -10,6 +10,9 @@ public class AuthResponse {
     @Schema(description = "Token de acceso JWT")
     private String token;
 
+    @Schema(description = "Refresh Token para renovar sesión")
+    private String refreshToken;
+
     @Schema(description = "Tipo de token", example = "Bearer")
     private String type = "Bearer";
 
@@ -35,6 +38,25 @@ public class AuthResponse {
         this.email = email;
         this.roles = roles;
     }
+
+    public AuthResponse(String token, String refreshToken, String type, String username, String fullName, String email, List<String> roles) {
+        this.token = token;
+        this.refreshToken = refreshToken;
+        this.type = type != null ? type : "Bearer";
+        this.username = username;
+        this.fullName = fullName;
+        this.email = email;
+        this.roles = roles;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
+
 
     public String getToken() {
         return token;

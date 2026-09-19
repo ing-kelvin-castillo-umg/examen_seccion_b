@@ -1,0 +1,48 @@
+name: CI Pipeline - Examen Parcial
+
+on:
+  push:
+    branches: [ "main", "feature/**" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  backend-tests:
+    name: Backend Tests & Build (Java 21 / Maven)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar JDK 21 (Eclipse Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Ejecutar Tests Automatizados del Backend
+        run: mvn clean test
+        working-directory: ./backend
+
+  frontend-build:
+    name: Frontend Build & Typecheck (Next.js 14 / Bun)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Bun 1.4
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.0
+
+      - name: Instalar dependencias con Bun
+        run: bun install --frozen-lockfile
+        working-directory: ./frontend
+
+      - name: Compilar Frontend (Next.js Standalone)
+        run: bun run build
+        working-directory: ./frontend
+        env:
+          NEXT_TELEMETRY_DISABLED: 1

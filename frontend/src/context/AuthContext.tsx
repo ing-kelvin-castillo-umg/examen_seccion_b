@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 interface AuthContextType {
   user: User | null;
   token: string | null;
+  refreshToken: string | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
   loading: boolean;
@@ -20,6 +21,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -28,6 +30,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (session) {
       setUser(session.user);
       setToken(session.token);
+      setRefreshToken(session.refreshToken || null);
     }
     setLoading(false);
   }, []);
@@ -36,12 +39,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const session = await AuthService.login({ username, password });
     setUser(session.user);
     setToken(session.token);
+    setRefreshToken(session.refreshToken || null);
   };
 
   const logout = () => {
     AuthService.logout();
     setUser(null);
     setToken(null);
+    setRefreshToken(null);
     router.push("/");
   };
 
@@ -53,6 +58,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         user,
         token,
+        refreshToken,
         isAuthenticated,
         isAdmin,
         loading,
@@ -60,6 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout,
       }}
     >
+
       {children}
     </AuthContext.Provider>
   );

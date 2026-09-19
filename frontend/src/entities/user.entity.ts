@@ -11,7 +11,9 @@ export interface User {
 
 export interface AuthSession {
   token: string;
+  refreshToken?: string;
   user: User;
   isAuthenticated: boolean;
   isAdmin: boolean;
 }
+
