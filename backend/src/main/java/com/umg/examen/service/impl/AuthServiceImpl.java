@@ -47,7 +47,43 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + request.getUsername()));
 
-        return userMapper.toAuthResponse(user, token);
+        AuthResponse response = userMapper.toAuthResponse(user, token);
+        response.setRefreshToken(
+                tokenProvider.generateRefreshToken(user.getUsername())
+        );
+        return response;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public AuthResponse refreshToken(String refreshToken) {
+        if (!tokenProvider.validateRefreshToken(refreshToken)) {
+            throw new IllegalArgumentException("Refresh token inválido o expirado");
+        }
+
+        String username = tokenProvider.getUsernameFromJwt(refreshToken);
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() ->
+                        new UsernameNotFoundException(
+                                "Usuario no encontrado: " + username
+                        )
+                );
+
+        java.util.List<String> roles = user.getRoles()
+                .stream()
+                .map(role -> role.getName())
+                .collect(java.util.stream.Collectors.toList());
+
+        String newAccessToken =
+                tokenProvider.generateTokenFromUsername(username, roles);
+
+        AuthResponse response =
+                userMapper.toAuthResponse(user, newAccessToken);
+
+        response.setRefreshToken(refreshToken);
+
+        return response;
     }
 
     @Override
