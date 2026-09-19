@@ -23,12 +23,30 @@ export class AuthService {
     return AuthMapper.toUserFromResponse(response.data);
   }
 
-  static logout(): void {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("token");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("user");
+  static async logout(): Promise<void> {
+    if (typeof window === "undefined") return;
+
+    const refreshToken = localStorage.getItem("refreshToken");
+
+    // Best-effort: se notifica al backend para invalidar la sesión activa
+    // (revoca el refresh token). Si falla (red caída, backend abajo, etc.)
+    // igual se limpia la sesión local para no dejar al usuario atrapado.
+    if (refreshToken) {
+      try {
+        await fetch("/api/auth/logout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ refreshToken }),
+          keepalive: true,
+        });
+      } catch (error) {
+        console.warn("[AUTH] No se pudo notificar el logout al backend:", error);
+      }
     }
+
+    localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
   }
 
   static getStoredSession(): AuthSession | null {

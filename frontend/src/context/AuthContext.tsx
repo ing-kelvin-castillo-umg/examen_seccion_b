@@ -4,6 +4,9 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { User } from "@/entities/user.entity";
 import { AuthService } from "@/services/auth.service";
 import { useRouter } from "next/navigation";
+import { InactivityMonitor } from "@/components/InactivityMonitor";
+
+export type LogoutReason = "manual" | "inactivity";
 
 interface AuthContextType {
   user: User | null;
@@ -12,7 +15,7 @@ interface AuthContextType {
   isAdmin: boolean;
   loading: boolean;
   login: (username: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: (reason?: LogoutReason) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -38,11 +41,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(session.token);
   };
 
-  const logout = () => {
-    AuthService.logout();
+  const logout = async (reason: LogoutReason = "manual") => {
+    await AuthService.logout();
     setUser(null);
     setToken(null);
-    router.push("/");
+
+    if (reason === "inactivity") {
+      router.push("/login?reason=inactivity");
+    } else {
+      router.push("/");
+    }
   };
 
   const isAdmin = !!(user?.roles && user.roles.includes("ROLE_ADMIN"));
@@ -60,6 +68,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout,
       }}
     >
+      <InactivityMonitor />
       {children}
     </AuthContext.Provider>
   );

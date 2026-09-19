@@ -100,6 +100,18 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
+    public void logout(String refreshTokenValue) {
+        if (!StringUtils.hasText(refreshTokenValue)) {
+            return;
+        }
+        // Best-effort: si el token ya no existe (expirado, ya cerrado en otra pestaña, etc.)
+        // el logout igual se considera exitoso, no rompe el flujo del cliente.
+        refreshTokenRepository.findByToken(refreshTokenValue)
+                .ifPresent(refreshTokenRepository::delete);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public UserResponse getCurrentUser(String username) {
         User user = userRepository.findByUsername(username)
