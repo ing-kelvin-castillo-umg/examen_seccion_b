@@ -11,11 +11,13 @@ import {
   ShieldAlert,
   User as UserIcon,
   Home,
+  Clock,
 } from "lucide-react";
 
 export const Sidebar: React.FC = () => {
   const pathname = usePathname();
-  const { user, isAdmin, logout } = useAuth();
+  const { user, isAdmin, logout, remainingIdleSeconds } = useAuth();
+
 
   const navItems = [
     {
@@ -104,13 +106,36 @@ export const Sidebar: React.FC = () => {
           </span>
         </div>
 
+        {/* Temporizador de Inactividad (Evidencia Fase 3) */}
+        <div className="p-2.5 bg-slate-900/90 rounded-xl border border-slate-800 space-y-1.5 mb-3">
+          <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400">
+            <span className="flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-amber-400" />
+              <span>Inactividad</span>
+            </span>
+            <span className={`font-mono text-xs font-bold ${remainingIdleSeconds <= 30 ? "text-rose-400 animate-pulse" : "text-amber-300"}`}>
+              {Math.floor(remainingIdleSeconds / 60).toString().padStart(2, "0")}:
+              {(remainingIdleSeconds % 60).toString().padStart(2, "0")}
+            </span>
+          </div>
+          <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+            <div
+              className={`h-full transition-all duration-1000 ${
+                remainingIdleSeconds <= 30 ? "bg-rose-500" : "bg-amber-400"
+              }`}
+              style={{ width: `${Math.min(100, Math.max(0, (remainingIdleSeconds / 120) * 100))}%` }}
+            />
+          </div>
+        </div>
+
         <button
-          onClick={logout}
+          onClick={() => logout()}
           className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium text-rose-400 hover:text-white bg-rose-500/10 hover:bg-rose-600 rounded-lg transition-colors border border-rose-500/20 hover:border-transparent"
         >
           <LogOut className="w-3.5 h-3.5" />
           <span>Cerrar Sesión</span>
         </button>
+
       </div>
     </aside>
   );

@@ -1,6 +1,7 @@
 package com.umg.examen.controller;
 
 import com.umg.examen.dto.request.LoginRequest;
+import com.umg.examen.dto.request.LogoutRequest;
 import com.umg.examen.dto.request.RefreshTokenRequest;
 import com.umg.examen.dto.response.ApiResponse;
 import com.umg.examen.dto.response.AuthResponse;
@@ -38,6 +39,17 @@ public class AuthController {
         AuthResponse authResponse = authService.refreshToken(request);
         return ResponseEntity.ok(ApiResponse.success("Token renovado exitosamente", authResponse));
     }
+
+    @PostMapping("/logout")
+    @Operation(summary = "Cerrar sesión", description = "Invalida el token JWT activo y registra la auditoría del cierre de sesión")
+    public ResponseEntity<ApiResponse<Void>> logout(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestBody(required = false) LogoutRequest request) {
+        String reason = request != null ? request.getReason() : "manual";
+        authService.logout(authHeader, reason);
+        return ResponseEntity.ok(ApiResponse.success("Sesión finalizada", null));
+    }
+
 
 
     @GetMapping("/me")

@@ -59,6 +59,25 @@ export class AuthService {
     }
   }
 
+  static async logoutSync(reason: string = "manual"): Promise<void> {
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (token) {
+      try {
+        await ApiClient.rawRequest("/api/auth/logout", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ reason }),
+        });
+      } catch (err: any) {
+        console.warn("[AUTH] Error al notificar logout al backend:", err.message);
+      }
+    }
+    this.logout();
+  }
+
   static logout(): void {
     if (typeof window !== "undefined") {
       localStorage.removeItem("token");
@@ -66,6 +85,7 @@ export class AuthService {
       localStorage.removeItem("user");
     }
   }
+
 
   static getStoredSession(): AuthSession | null {
     if (typeof window === "undefined") return null;

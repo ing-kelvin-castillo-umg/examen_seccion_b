@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -11,15 +11,19 @@ import {
   ArrowRight,
   ShieldCheck,
   AlertCircle,
+  Clock,
   Loader2,
   ChevronLeft,
 } from "lucide-react";
 
-export default function LoginPage() {
+function LoginForm() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const searchParams = useSearchParams();
+  const reason = searchParams.get("reason");
 
   const { login } = useAuth();
   const router = useRouter();
@@ -104,6 +108,19 @@ export default function LoginPage() {
           </div>
         </div>
 
+        {/* Inactivity Notification */}
+        {reason === "inactivity" && (
+          <div className="p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-300 flex items-start gap-2.5">
+            <Clock className="w-4 h-4 shrink-0 mt-0.5 text-amber-400" />
+            <div>
+              <p className="font-semibold">Sesión cerrada por inactividad</p>
+              <p className="text-amber-300/80 mt-0.5">
+                Tu sesión expiró automáticamente por falta de actividad. Por favor, ingresa nuevamente tus credenciales.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Error Notification */}
         {error && (
           <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-300 flex items-center gap-2">
@@ -165,5 +182,13 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400 text-sm">Cargando...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }

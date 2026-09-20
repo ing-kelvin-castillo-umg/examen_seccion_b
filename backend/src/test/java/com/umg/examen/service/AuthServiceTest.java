@@ -8,6 +8,7 @@ import com.umg.examen.entity.User;
 import com.umg.examen.mapper.UserMapper;
 import com.umg.examen.repository.UserRepository;
 import com.umg.examen.security.JwtTokenProvider;
+import com.umg.examen.security.TokenBlacklistService;
 import com.umg.examen.service.impl.AuthServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -23,8 +24,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
+
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -42,8 +45,12 @@ class AuthServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private TokenBlacklistService tokenBlacklistService;
+
     @Spy
     private UserMapper userMapper;
+
 
     @InjectMocks
     private AuthServiceImpl authService;
@@ -127,4 +134,20 @@ class AuthServiceTest {
 
         assertThrows(BadCredentialsException.class, () -> authService.refreshToken(request));
     }
+
+    @Test
+    @DisplayName("Logout debe registrar en lista negra el token válido")
+    void testLogoutRevokesToken() {
+        String token = "Bearer valid-token-to-revoke";
+        Date futureDate = new Date(System.currentTimeMillis() + 60000);
+
+        when(tokenProvider.validateToken("valid-token-to-revoke")).thenReturn(true);
+        when(tokenProvider.getUsernameFromJwt("valid-token-to-revoke")).thenReturn("admin");
+        when(tokenProvider.getExpirationDateFromJwt("valid-token-to-revoke")).thenReturn(futureDate);
+
+        authService.logout(token, "inactivity");
+
+        verify(tokenBlacklistService).blacklistToken("valid-token-to-revoke", futureDate.getTime());
+    }
 }
+

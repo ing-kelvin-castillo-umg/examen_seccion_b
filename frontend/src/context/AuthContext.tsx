@@ -5,6 +5,8 @@ import { User } from "@/entities/user.entity";
 import { AuthService } from "@/services/auth.service";
 import { useRouter } from "next/navigation";
 
+import { useIdleTimer } from "@/hooks/useIdleTimer";
+
 interface AuthContextType {
   user: User | null;
   token: string | null;
@@ -12,8 +14,9 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
   loading: boolean;
+  remainingIdleSeconds: number;
   login: (username: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: (reason?: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,6 +27,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+
+  const handleLogout = async (reason: string = "manual") => {
+    await AuthService.logoutSync(reason);
+    setUser(null);
+    setToken(null);
+    setRefreshToken(null);
+
+    if (reason === "inactivity") {
+      router.push("/login?reason=inactivity");
+    } else {
+      router.push("/");
+    }
+  };
+
+  const isAuthenticated = !!token && !!user;
+  const isAdmin = !!(user?.roles && user.roles.includes("ROLE_ADMIN"));
+
+  // Detector de inactividad: 120 segundos (2 minutos) para evaluación
+  const { remainingSeconds } = useIdleTimer({
+    timeoutSeconds: 120,
+    enabled: isAuthenticated && !loading,
+    onIdle: () => {
+      console.warn("[SECURITY] Tiempo de inactividad agotado. Cerrando sesión...");
+      handleLogout("inactivity");
+    },
+  });
 
   useEffect(() => {
     const session = AuthService.getStoredSession();
@@ -42,17 +71,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setRefreshToken(session.refreshToken || null);
   };
 
-  const logout = () => {
-    AuthService.logout();
-    setUser(null);
-    setToken(null);
-    setRefreshToken(null);
-    router.push("/");
-  };
-
-  const isAdmin = !!(user?.roles && user.roles.includes("ROLE_ADMIN"));
-  const isAuthenticated = !!token && !!user;
-
   return (
     <AuthContext.Provider
       value={{
@@ -62,15 +80,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAuthenticated,
         isAdmin,
         loading,
+        remainingIdleSeconds: remainingSeconds,
         login,
-        logout,
+        logout: handleLogout,
       }}
     >
-
       {children}
     </AuthContext.Provider>
   );
 };
+
 
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
