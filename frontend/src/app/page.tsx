@@ -16,6 +16,9 @@ import {
   Database,
   Layers,
   Code2,
+  Cpu,
+  Clock,
+  Lock,
 } from "lucide-react";
 
 export default function HomePage() {
@@ -33,7 +36,6 @@ export default function HomePage() {
         }
       } catch (err) {
         console.warn("No se pudo conectar a la API del backend, usando datos por defecto:", err);
-        // Fallback dummy products for initial display before backend startup
         setProducts([
           {
             id: 1,
@@ -81,33 +83,37 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100">
+    <div className="min-h-screen flex flex-col bg-stoneDark-950 text-stone-100 selection:bg-sage-600 selection:text-stone-100 relative overflow-hidden">
+      {/* Ambient background glow - desaturated, subtle & warm */}
+      <div className="absolute top-12 left-1/4 -translate-x-1/2 w-96 h-96 bg-sage-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-36 right-1/4 translate-x-1/2 w-96 h-96 bg-clay-500/10 rounded-full blur-3xl pointer-events-none" />
+
       <Navbar />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 space-y-16">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 space-y-20 relative z-10">
         {/* Hero Section */}
-        <section className="text-center space-y-5 max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold tracking-wide">
-            <Sparkles className="w-3.5 h-3.5" />
+        <section className="text-center space-y-6 max-w-3xl mx-auto">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-sage-500/15 border border-sage-500/25 text-sage-300 text-xs font-medium tracking-wide">
+            <Sparkles className="w-3.5 h-3.5 text-sage-400" />
             <span>Universidad Mariano Gálvez de Guatemala • Segundo Parcial</span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-white leading-tight">
+          <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-stone-100 leading-tight">
             Gestión y Catálogo de{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-sky-300 to-indigo-400">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-stone-100 via-sage-300 to-clay-300">
               Productos
             </span>
           </h1>
 
-          <p className="text-slate-400 text-base sm:text-lg leading-relaxed">
-            Plataforma monorepo moderna desarrollada con Spring Boot (Java 21), PostgreSQL con Liquibase, autenticación basada en JWT con control de roles, y frontend en Next.js con React.
+          <p className="text-stone-400 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto font-normal">
+            Plataforma monorepo de arquitectura limpia desarrollada con Spring Boot (Java 21), PostgreSQL con Liquibase, autenticación JWT con control de roles y frontend Next.js en contenedorización optimizada.
           </p>
 
           <div className="pt-2 flex flex-wrap items-center justify-center gap-4">
             {isAuthenticated ? (
               <Link
                 href="/dashboard/products"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-lg shadow-blue-600/30 transition-all hover:scale-105"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-sage-600 hover:bg-sage-500 text-stone-100 font-semibold text-sm shadow-lg shadow-sage-950/60 transition-all hover:scale-[1.02] active:scale-[0.98]"
               >
                 <span>Acceder al Panel Privado</span>
                 <ArrowRight className="w-4 h-4" />
@@ -116,7 +122,7 @@ export default function HomePage() {
               <>
                 <Link
                   href="/login"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-lg shadow-blue-600/30 transition-all hover:scale-105"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-sage-600 hover:bg-sage-500 text-stone-100 font-semibold text-sm shadow-lg shadow-sage-950/60 transition-all hover:scale-[1.02] active:scale-[0.98]"
                 >
                   <span>Iniciar Sesión</span>
                   <ArrowRight className="w-4 h-4" />
@@ -125,13 +131,45 @@ export default function HomePage() {
                   href="http://localhost:8080/swagger-ui/index.html"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 font-medium text-sm transition-all"
+                  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-stoneDark-900 hover:bg-stoneDark-850 text-stone-300 border border-stoneDark-800 font-medium text-sm transition-all"
                 >
-                  <Code2 className="w-4 h-4" />
+                  <Code2 className="w-4 h-4 text-stone-400" />
                   <span>Documentación Swagger API</span>
                 </a>
               </>
             )}
+          </div>
+
+          {/* Quick Technical Highlights */}
+          <div className="pt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto">
+            <div className="p-3 rounded-xl bg-stoneDark-900/60 border border-stoneDark-800 text-left">
+              <div className="flex items-center gap-1.5 text-sage-400 text-xs font-semibold">
+                <Cpu className="w-3.5 h-3.5" />
+                <span>Next.js BFF</span>
+              </div>
+              <p className="text-[11px] text-stone-400 mt-1">Backend URL oculta</p>
+            </div>
+            <div className="p-3 rounded-xl bg-stoneDark-900/60 border border-stoneDark-800 text-left">
+              <div className="flex items-center gap-1.5 text-sage-400 text-xs font-semibold">
+                <Lock className="w-3.5 h-3.5" />
+                <span>Refresh Token</span>
+              </div>
+              <p className="text-[11px] text-stone-400 mt-1">Rotación silenciosa</p>
+            </div>
+            <div className="p-3 rounded-xl bg-stoneDark-900/60 border border-stoneDark-800 text-left">
+              <div className="flex items-center gap-1.5 text-clay-400 text-xs font-semibold">
+                <Clock className="w-3.5 h-3.5" />
+                <span>Auto Inactividad</span>
+              </div>
+              <p className="text-[11px] text-stone-400 mt-1">Cierre centralizado</p>
+            </div>
+            <div className="p-3 rounded-xl bg-stoneDark-900/60 border border-stoneDark-800 text-left">
+              <div className="flex items-center gap-1.5 text-stone-300 text-xs font-semibold">
+                <Database className="w-3.5 h-3.5" />
+                <span>PostgreSQL</span>
+              </div>
+              <p className="text-[11px] text-stone-400 mt-1">Liquibase CI/CD</p>
+            </div>
           </div>
         </section>
 
@@ -139,16 +177,16 @@ export default function HomePage() {
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <Zap className="w-5 h-5 text-amber-400" />
-                <span>Productos Destacados</span>
+              <h2 className="text-xl font-bold text-stone-100 flex items-center gap-2">
+                <Zap className="w-5 h-5 text-clay-400" />
+                <span>Catálogo de Productos Destacados</span>
               </h2>
-              <p className="text-xs text-slate-400">
-                Explora el catálogo dinámico de productos activos
+              <p className="text-xs text-stone-400">
+                Visualización interactiva con inventario en tiempo real
               </p>
             </div>
-            <span className="text-xs text-slate-500 hidden sm:inline">
-              Desplazamiento automático interactivo
+            <span className="text-xs text-stone-500 hidden sm:inline">
+              Desplazamiento sincronizado
             </span>
           </div>
 
@@ -156,41 +194,41 @@ export default function HomePage() {
         </section>
 
         {/* Architecture & Roles Features */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
-          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center">
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+          <div className="p-6 rounded-2xl bg-stoneDark-900/70 border border-stoneDark-800 space-y-3 hover:border-sage-500/40 transition-all group">
+            <div className="w-10 h-10 rounded-xl bg-sage-500/15 text-sage-400 flex items-center justify-center group-hover:scale-105 transition-transform">
               <ShieldCheck className="w-5 h-5" />
             </div>
-            <h3 className="text-base font-bold text-white">Seguridad &amp; Roles JWT</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Control de acceso con roles <span className="text-blue-300 font-mono">ROLE_ADMIN</span> y <span className="text-emerald-300 font-mono">ROLE_USER</span>. Permisos diferenciados para consulta y mutación de inventario.
+            <h3 className="text-base font-bold text-stone-100">Seguridad &amp; Roles JWT</h3>
+            <p className="text-xs text-stone-400 leading-relaxed">
+              Control de acceso con roles <span className="text-sage-300 font-mono">ROLE_ADMIN</span> y <span className="text-clay-300 font-mono">ROLE_USER</span>. Permisos diferenciados para consulta y mutación de inventario con lista negra de tokens revocados.
             </p>
           </div>
 
-          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
+          <div className="p-6 rounded-2xl bg-stoneDark-900/70 border border-stoneDark-800 space-y-3 hover:border-clay-500/40 transition-all group">
+            <div className="w-10 h-10 rounded-xl bg-clay-500/15 text-clay-400 flex items-center justify-center group-hover:scale-105 transition-transform">
               <Database className="w-5 h-5" />
             </div>
-            <h3 className="text-base font-bold text-white">PostgreSQL &amp; Liquibase</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Evolución de esquema automatizada mediante changelogs versionados, garantizando la creación de tablas y semillas de datos consistentes.
+            <h3 className="text-base font-bold text-stone-100">PostgreSQL &amp; Liquibase</h3>
+            <p className="text-xs text-stone-400 leading-relaxed">
+              Evolución de esquema automatizada mediante changelogs versionados, garantizando creación de tablas, restricciones de unicidad y semillas consistentes.
             </p>
           </div>
 
-          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+          <div className="p-6 rounded-2xl bg-stoneDark-900/70 border border-stoneDark-800 space-y-3 hover:border-stoneDark-700 transition-all group">
+            <div className="w-10 h-10 rounded-xl bg-stone-700/25 text-stone-300 flex items-center justify-center group-hover:scale-105 transition-transform">
               <Layers className="w-5 h-5" />
             </div>
-            <h3 className="text-base font-bold text-white">Arquitectura Limpia y Mappers</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Capas desacopladas en Backend (Repository, Entity, Service e Interfaces, Mappers, DTOs) y en Frontend (DTOs, Entities, Mappers, Services).
+            <h3 className="text-base font-bold text-stone-100">Arquitectura Limpia y Mappers</h3>
+            <p className="text-xs text-stone-400 leading-relaxed">
+              Capas desacopladas en Backend (Repository, Entity, Service, Mappers, DTOs) y en Frontend (DTOs, Entities, Mappers, Services, Hooks personalizados).
             </p>
           </div>
         </section>
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-800/80 py-8 text-center text-xs text-slate-500">
+      <footer className="border-t border-stoneDark-800/80 py-8 text-center text-xs text-stone-500 relative z-10">
         <p>Universidad Mariano Gálvez de Guatemala • Facultad de Ingeniería en Sistemas</p>
         <p className="mt-1">Examen Segundo Parcial • Backend Spring Boot 3 + Frontend Next.js</p>
       </footer>

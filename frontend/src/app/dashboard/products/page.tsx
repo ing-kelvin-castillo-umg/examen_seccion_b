@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Product } from "@/entities/product.entity";
 import { ProductService } from "@/services/product.service";
 import { useAuth } from "@/context/AuthContext";
@@ -17,6 +17,9 @@ import {
   RefreshCw,
   CheckCircle,
   AlertTriangle,
+  Package,
+  DollarSign,
+  CheckCircle2,
 } from "lucide-react";
 
 export default function ProductsPage() {
@@ -57,6 +60,20 @@ export default function ProductsPage() {
   useEffect(() => {
     loadProducts();
   }, [loadProducts]);
+
+  // Inventory KPI statistics
+  const stats = useMemo(() => {
+    const total = products.length;
+    const totalValue = products.reduce((acc, p) => acc + (Number(p.price) || 0) * (Number(p.stock) || 0), 0);
+    const inStock = products.filter((p) => (p.stock || 0) > 0).length;
+    const lowStock = products.filter((p) => (p.stock || 0) <= 5).length;
+    return {
+      total,
+      totalValue: new Intl.NumberFormat("es-GT", { style: "currency", currency: "GTQ" }).format(totalValue),
+      inStock,
+      lowStock,
+    };
+  }, [products]);
 
   // View Handler
   const handleView = (product: Product) => {
@@ -111,14 +128,14 @@ export default function ProductsPage() {
         <div
           className={`fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-5 py-3 rounded-2xl shadow-xl border text-sm font-medium animate-in slide-in-from-bottom-5 duration-300 ${
             toast.type === "success"
-              ? "bg-emerald-50 border-emerald-200 text-emerald-800"
-              : "bg-rose-50 border-rose-200 text-rose-800"
+              ? "bg-sage-50 border-sage-200 text-sage-900"
+              : "bg-clay-50 border-clay-200 text-clay-900"
           }`}
         >
           {toast.type === "success" ? (
-            <CheckCircle className="w-5 h-5 text-emerald-600" />
+            <CheckCircle className="w-5 h-5 text-sage-600" />
           ) : (
-            <AlertTriangle className="w-5 h-5 text-rose-600" />
+            <AlertTriangle className="w-5 h-5 text-clay-600" />
           )}
           <span>{toast.message}</span>
         </div>
@@ -127,14 +144,14 @@ export default function ProductsPage() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">
-            <Boxes className="w-4 h-4 text-blue-600" />
+          <div className="flex items-center gap-2 text-stone-500 text-xs font-semibold uppercase tracking-wider mb-1">
+            <Boxes className="w-4 h-4 text-sage-600" />
             <span>Módulo de Inventario</span>
           </div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight">
             Gestión de Productos
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-xs sm:text-sm text-stone-500 mt-0.5">
             Consulta, busca y gestiona el inventario de productos en tiempo real.
           </p>
         </div>
@@ -145,26 +162,91 @@ export default function ProductsPage() {
             onClick={loadProducts}
             disabled={loading}
             title="Recargar listado"
-            className="p-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-600 transition-colors shadow-sm disabled:opacity-50"
+            className="p-2.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-600 transition-colors shadow-sm disabled:opacity-50"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-blue-600" : ""}`} />
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-sage-600" : ""}`} />
           </button>
 
-          <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-200 shadow-sm text-xs font-semibold text-slate-700">
+          <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-stone-200 shadow-sm text-xs font-semibold text-stone-700">
             {isAdmin ? (
-              <ShieldCheck className="w-4 h-4 text-indigo-600" />
+              <ShieldCheck className="w-4 h-4 text-sage-600" />
             ) : (
-              <UserIcon className="w-4 h-4 text-emerald-600" />
+              <UserIcon className="w-4 h-4 text-clay-600" />
             )}
             <span>Rol:</span>
             <span
               className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${
                 isAdmin
-                  ? "bg-indigo-100 text-indigo-800"
-                  : "bg-emerald-100 text-emerald-800"
+                  ? "bg-sage-100 text-sage-800"
+                  : "bg-clay-100 text-clay-800"
               }`}
             >
               {isAdmin ? "ADMINISTRADOR" : "USUARIO"}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Inventory KPI Metric Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Metric 1 */}
+        <div className="p-5 rounded-2xl bg-white border border-stone-200/80 shadow-sm space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Total Productos</span>
+            <span className="p-2 rounded-xl bg-sage-50 text-sage-600">
+              <Package className="w-4 h-4" />
+            </span>
+          </div>
+          <div className="flex items-baseline justify-between">
+            <span className="text-2xl sm:text-3xl font-black text-stone-900">{stats.total}</span>
+            <span className="text-[11px] font-semibold text-sage-700 bg-sage-50 px-2 py-0.5 rounded-md">
+              En catálogo
+            </span>
+          </div>
+        </div>
+
+        {/* Metric 2 */}
+        <div className="p-5 rounded-2xl bg-white border border-stone-200/80 shadow-sm space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Valor Inventario</span>
+            <span className="p-2 rounded-xl bg-stone-100 text-stone-700">
+              <DollarSign className="w-4 h-4" />
+            </span>
+          </div>
+          <div className="flex items-baseline justify-between">
+            <span className="text-xl sm:text-2xl font-black text-stone-900 truncate">{stats.totalValue}</span>
+            <span className="text-[11px] font-medium text-stone-500">Estimado</span>
+          </div>
+        </div>
+
+        {/* Metric 3 */}
+        <div className="p-5 rounded-2xl bg-white border border-stone-200/80 shadow-sm space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Disponibles</span>
+            <span className="p-2 rounded-xl bg-sage-50 text-sage-600">
+              <CheckCircle2 className="w-4 h-4" />
+            </span>
+          </div>
+          <div className="flex items-baseline justify-between">
+            <span className="text-2xl sm:text-3xl font-black text-stone-900">{stats.inStock}</span>
+            <span className="text-[11px] font-semibold text-sage-700 bg-sage-50 px-2 py-0.5 rounded-md">
+              Con stock
+            </span>
+          </div>
+        </div>
+
+        {/* Metric 4 */}
+        <div className="p-5 rounded-2xl bg-white border border-stone-200/80 shadow-sm space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Stock Crítico</span>
+            <span className="p-2 rounded-xl bg-clay-50 text-clay-600">
+              <AlertTriangle className="w-4 h-4" />
+            </span>
+          </div>
+          <div className="flex items-baseline justify-between">
+            <span className="text-2xl sm:text-3xl font-black text-stone-900">{stats.lowStock}</span>
+            <span className="text-[11px] font-semibold text-clay-700 bg-clay-50 px-2 py-0.5 rounded-md">
+              ≤ 5 unids.
             </span>
           </div>
         </div>
