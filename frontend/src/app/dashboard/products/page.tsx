@@ -17,6 +17,8 @@ import {
   RefreshCw,
   CheckCircle,
   AlertTriangle,
+  PackageCheck,
+  DollarSign,
 } from "lucide-react";
 
 export default function ProductsPage() {
@@ -36,6 +38,13 @@ export default function ProductsPage() {
 
   const [deleteProduct, setDeleteProduct] = useState<Product | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  const totalStock = products.reduce((total, product) => total + product.stock, 0);
+  const inventoryValue = products.reduce(
+    (total, product) => total + product.price * product.stock,
+    0
+  );
+  const availableProducts = products.filter((product) => product.inStock).length;
 
   const showToast = (message: string, type: "success" | "error" = "success") => {
     setToast({ message, type });
@@ -105,7 +114,7 @@ export default function ProductsPage() {
   };
 
   return (
-    <div className="p-6 sm:p-10 space-y-8 max-w-7xl w-full mx-auto">
+    <div className="p-4 sm:p-8 lg:p-10 space-y-8 max-w-7xl w-full mx-auto">
       {/* Toast alert */}
       {toast && (
         <div
@@ -125,16 +134,17 @@ export default function ProductsPage() {
       )}
 
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-3xl bg-gradient-to-r from-ink-900 via-ink-800 to-brand-950 p-6 sm:p-8 text-white shadow-soft overflow-hidden relative">
+        <div className="absolute -right-16 -top-20 w-64 h-64 rounded-full bg-brand-400/15 blur-3xl" />
         <div>
-          <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">
-            <Boxes className="w-4 h-4 text-blue-600" />
+          <div className="flex items-center gap-2 text-brand-200 text-xs font-semibold uppercase tracking-wider mb-2">
+            <Boxes className="w-4 h-4 text-brand-300" />
             <span>Módulo de Inventario</span>
           </div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
             Gestión de Productos
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-ink-300 mt-2">
             Consulta, busca y gestiona el inventario de productos en tiempo real.
           </p>
         </div>
@@ -145,23 +155,23 @@ export default function ProductsPage() {
             onClick={loadProducts}
             disabled={loading}
             title="Recargar listado"
-            className="p-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-600 transition-colors shadow-sm disabled:opacity-50"
+            className="p-2.5 rounded-xl border border-white/15 bg-white/10 hover:bg-white/15 text-white transition-colors disabled:opacity-50"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-blue-600" : ""}`} />
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-brand-300" : ""}`} />
           </button>
 
-          <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-200 shadow-sm text-xs font-semibold text-slate-700">
+          <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/10 border border-white/15 text-xs font-semibold text-ink-100">
             {isAdmin ? (
-              <ShieldCheck className="w-4 h-4 text-indigo-600" />
+              <ShieldCheck className="w-4 h-4 text-sky-300" />
             ) : (
-              <UserIcon className="w-4 h-4 text-emerald-600" />
+              <UserIcon className="w-4 h-4 text-brand-300" />
             )}
             <span>Rol:</span>
             <span
               className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${
                 isAdmin
-                  ? "bg-indigo-100 text-indigo-800"
-                  : "bg-emerald-100 text-emerald-800"
+                  ? "bg-sky-400/15 text-sky-200"
+                  : "bg-brand-400/15 text-brand-200"
               }`}
             >
               {isAdmin ? "ADMINISTRADOR" : "USUARIO"}
@@ -169,6 +179,21 @@ export default function ProductsPage() {
           </div>
         </div>
       </div>
+
+      <section aria-label="Resumen del inventario" className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="rounded-2xl border border-ink-200 bg-white p-5 shadow-soft flex items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-brand-50 text-brand-700 flex items-center justify-center"><Boxes className="w-5 h-5" /></div>
+          <div><p className="text-xs font-semibold uppercase tracking-wide text-ink-500">Productos</p><p className="text-2xl font-black text-ink-900">{products.length}</p></div>
+        </div>
+        <div className="rounded-2xl border border-ink-200 bg-white p-5 shadow-soft flex items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-sky-50 text-sky-700 flex items-center justify-center"><PackageCheck className="w-5 h-5" /></div>
+          <div><p className="text-xs font-semibold uppercase tracking-wide text-ink-500">Stock disponible</p><p className="text-2xl font-black text-ink-900">{totalStock} <span className="text-xs font-semibold text-ink-500">uds.</span></p><p className="text-[11px] text-ink-500">{availableProducts} referencias activas</p></div>
+        </div>
+        <div className="rounded-2xl border border-ink-200 bg-white p-5 shadow-soft flex items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center"><DollarSign className="w-5 h-5" /></div>
+          <div><p className="text-xs font-semibold uppercase tracking-wide text-ink-500">Valor inventario</p><p className="text-2xl font-black text-ink-900">Q{inventoryValue.toLocaleString("es-GT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p></div>
+        </div>
+      </section>
 
       {/* Main DataTable */}
       <DataTable
