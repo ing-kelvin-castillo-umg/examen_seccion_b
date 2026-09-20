@@ -81,25 +81,27 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100">
+    <div className="min-h-screen flex flex-col bg-navy-950 text-navy-50 overflow-hidden">
       <Navbar />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 space-y-16">
+      <main className="relative flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 space-y-16">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-petrol-500/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-40 right-0 w-80 h-80 bg-aqua-400/10 rounded-full blur-3xl pointer-events-none" />
         {/* Hero Section */}
-        <section className="text-center space-y-5 max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold tracking-wide">
+        <section className="relative text-center space-y-6 max-w-4xl mx-auto py-10 sm:py-14 px-5 sm:px-10 rounded-[2rem] border border-white/10 bg-gradient-to-br from-navy-900/80 via-navy-900/60 to-petrol-950/70 shadow-2xl shadow-navy-950/50 backdrop-blur-sm">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-petrol-500/15 border border-aqua-400/25 text-aqua-300 text-xs font-bold tracking-wide">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Universidad Mariano Gálvez de Guatemala • Segundo Parcial</span>
           </div>
 
           <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-white leading-tight">
             Gestión y Catálogo de{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-sky-300 to-indigo-400">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-aqua-300 via-petrol-300 to-cyan-200">
               Productos
             </span>
           </h1>
 
-          <p className="text-slate-400 text-base sm:text-lg leading-relaxed">
+          <p className="text-navy-200 text-base sm:text-lg leading-relaxed max-w-3xl mx-auto">
             Plataforma monorepo moderna desarrollada con Spring Boot (Java 21), PostgreSQL con Liquibase, autenticación basada en JWT con control de roles, y frontend en Next.js con React.
           </p>
 
@@ -107,7 +109,7 @@ export default function HomePage() {
             {isAuthenticated ? (
               <Link
                 href="/dashboard/products"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-lg shadow-blue-600/30 transition-all hover:scale-105"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-aqua-400 hover:bg-aqua-300 text-navy-950 font-bold text-sm shadow-lg shadow-aqua-400/20 transition-all hover:-translate-y-1"
               >
                 <span>Acceder al Panel Privado</span>
                 <ArrowRight className="w-4 h-4" />
@@ -116,7 +118,7 @@ export default function HomePage() {
               <>
                 <Link
                   href="/login"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-lg shadow-blue-600/30 transition-all hover:scale-105"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-aqua-400 hover:bg-aqua-300 text-navy-950 font-bold text-sm shadow-lg shadow-aqua-400/20 transition-all hover:-translate-y-1"
                 >
                   <span>Iniciar Sesión</span>
                   <ArrowRight className="w-4 h-4" />
@@ -125,7 +127,7 @@ export default function HomePage() {
                   href="/api/swagger-ui/index.html"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 font-medium text-sm transition-all"
+                  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-navy-100 border border-white/15 font-medium text-sm transition-all"
                 >
                   <Code2 className="w-4 h-4" />
                   <span>Documentación Swagger API</span>
@@ -139,15 +141,15 @@ export default function HomePage() {
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <Zap className="w-5 h-5 text-amber-400" />
+              <h2 className="text-2xl font-black text-white flex items-center gap-2">
+                <Zap className="w-5 h-5 text-aqua-300" />
                 <span>Productos Destacados</span>
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-sm text-navy-300">
                 Explora el catálogo dinámico de productos activos
               </p>
             </div>
-            <span className="text-xs text-slate-500 hidden sm:inline">
+            <span className="text-xs text-navy-300 hidden sm:inline px-3 py-1 rounded-full border border-white/10">
               Desplazamiento automático interactivo
             </span>
           </div>
@@ -157,32 +159,32 @@ export default function HomePage() {
 
         {/* Architecture & Roles Features */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
-          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center">
+          <div className="p-6 rounded-2xl bg-navy-900/70 border border-petrol-500/20 space-y-3 hover:-translate-y-1 hover:border-aqua-400/40 transition-all">
+            <div className="w-10 h-10 rounded-xl bg-petrol-500/15 text-aqua-300 flex items-center justify-center">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <h3 className="text-base font-bold text-white">Seguridad &amp; Roles JWT</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Control de acceso con roles <span className="text-blue-300 font-mono">ROLE_ADMIN</span> y <span className="text-emerald-300 font-mono">ROLE_USER</span>. Permisos diferenciados para consulta y mutación de inventario.
+            <p className="text-xs text-navy-300 leading-relaxed">
+              Control de acceso con roles <span className="text-aqua-300 font-mono">ROLE_ADMIN</span> y <span className="text-petrol-300 font-mono">ROLE_USER</span>. Permisos diferenciados para consulta y mutación de inventario.
             </p>
           </div>
 
-          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
+          <div className="p-6 rounded-2xl bg-navy-900/70 border border-petrol-500/20 space-y-3 hover:-translate-y-1 hover:border-aqua-400/40 transition-all">
+            <div className="w-10 h-10 rounded-xl bg-aqua-400/10 text-aqua-300 flex items-center justify-center">
               <Database className="w-5 h-5" />
             </div>
             <h3 className="text-base font-bold text-white">PostgreSQL &amp; Liquibase</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-navy-300 leading-relaxed">
               Evolución de esquema automatizada mediante changelogs versionados, garantizando la creación de tablas y semillas de datos consistentes.
             </p>
           </div>
 
-          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+          <div className="p-6 rounded-2xl bg-navy-900/70 border border-petrol-500/20 space-y-3 hover:-translate-y-1 hover:border-aqua-400/40 transition-all">
+            <div className="w-10 h-10 rounded-xl bg-petrol-400/15 text-petrol-300 flex items-center justify-center">
               <Layers className="w-5 h-5" />
             </div>
             <h3 className="text-base font-bold text-white">Arquitectura Limpia y Mappers</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-navy-300 leading-relaxed">
               Capas desacopladas en Backend (Repository, Entity, Service e Interfaces, Mappers, DTOs) y en Frontend (DTOs, Entities, Mappers, Services).
             </p>
           </div>
@@ -190,7 +192,7 @@ export default function HomePage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-800/80 py-8 text-center text-xs text-slate-500">
+      <footer className="border-t border-white/10 bg-navy-900/60 py-8 text-center text-xs text-navy-300">
         <p>Universidad Mariano Gálvez de Guatemala • Facultad de Ingeniería en Sistemas</p>
         <p className="mt-1">Examen Segundo Parcial • Backend Spring Boot 3 + Frontend Next.js</p>
       </footer>

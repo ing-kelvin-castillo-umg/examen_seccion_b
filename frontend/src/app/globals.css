@@ -3,9 +3,14 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 15, 23, 42;
-  --background-start-rgb: 248, 250, 252;
+  --foreground-rgb: 7, 26, 43;
+  --background-start-rgb: 242, 248, 247;
   --background-end-rgb: 255, 255, 255;
+  --navy: #071a2b;
+  --navy-soft: #0b2436;
+  --petrol: #0f766e;
+  --aqua: #22d3c5;
+  --mist: #f2f8f7;
 }
 
 body {
@@ -27,14 +32,24 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: var(--mist);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #8bb9c4;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--petrol);
+}
+
+::selection {
+  color: white;
+  background: var(--petrol);
+}
+
+:focus-visible {
+  outline: 3px solid rgba(34, 211, 197, 0.45);
+  outline-offset: 2px;
 }
