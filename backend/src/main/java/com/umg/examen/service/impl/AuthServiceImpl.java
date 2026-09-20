@@ -10,7 +10,10 @@ import com.umg.examen.exception.InvalidRefreshTokenException;
 import com.umg.examen.mapper.UserMapper;
 import com.umg.examen.repository.UserRepository;
 import com.umg.examen.security.JwtTokenProvider;
+import com.umg.examen.security.RevokedRefreshTokenStore;
 import com.umg.examen.service.AuthService;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -26,15 +29,18 @@ public class AuthServiceImpl implements AuthService {
     private final JwtTokenProvider tokenProvider;
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final RevokedRefreshTokenStore revokedRefreshTokenStore;
 
     public AuthServiceImpl(AuthenticationManager authenticationManager,
                            JwtTokenProvider tokenProvider,
                            UserRepository userRepository,
-                           UserMapper userMapper) {
+                           UserMapper userMapper,
+                           RevokedRefreshTokenStore revokedRefreshTokenStore) {
         this.authenticationManager = authenticationManager;
         this.tokenProvider = tokenProvider;
         this.userRepository = userRepository;
         this.userMapper = userMapper;
+        this.revokedRefreshTokenStore = revokedRefreshTokenStore;
     }
 
     @Override
@@ -62,7 +68,12 @@ public class AuthServiceImpl implements AuthService {
             throw new InvalidRefreshTokenException("Refresh token inválido o expirado");
         }
 
-        String username = tokenProvider.getUsernameFromJwt(refreshToken);
+        Claims claims = tokenProvider.getRefreshTokenClaims(refreshToken);
+        if (revokedRefreshTokenStore.isRevoked(claims.getId())) {
+            throw new InvalidRefreshTokenException("Refresh token revocado");
+        }
+
+        String username = claims.getSubject();
         User user = userRepository.findByUsername(username)
                 .filter(candidate -> Boolean.TRUE.equals(candidate.getEnabled()))
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado o inactivo: " + username));
@@ -71,6 +82,16 @@ public class AuthServiceImpl implements AuthService {
                 .map(role -> role.getName())
                 .toList();
         return new RefreshTokenResponse(tokenProvider.generateAccessToken(username, roles));
+    }
+
+    @Override
+    public void logout(RefreshTokenRequest request) {
+        try {
+            Claims claims = tokenProvider.getRefreshTokenClaims(request.getRefreshToken());
+            revokedRefreshTokenStore.revoke(claims.getId(), claims.getExpiration().getTime());
+        } catch (JwtException | IllegalArgumentException ex) {
+            throw new InvalidRefreshTokenException("Refresh token inválido o expirado");
+        }
     }
 
     @Override

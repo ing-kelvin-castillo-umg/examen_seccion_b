@@ -63,13 +63,23 @@ async function proxyRequest(request: NextRequest, context: RouteContext): Promis
   const backendUrl = buildBackendUrl(path, request);
   const isLogin = method === "POST" && path.join("/") === "auth/login";
   const isRefresh = method === "POST" && path.join("/") === "auth/refresh";
+  const isLogout = method === "POST" && path.join("/") === "auth/logout";
 
   try {
-    const refreshToken = isRefresh ? request.cookies.get(REFRESH_COOKIE_NAME)?.value : undefined;
+    const refreshToken = isRefresh || isLogout
+      ? request.cookies.get(REFRESH_COOKIE_NAME)?.value
+      : undefined;
     if (isRefresh && !refreshToken) {
       return Response.json(
         { success: false, message: "No hay un refresh token disponible.", data: null },
         { status: 401, headers: { "Set-Cookie": serializeRefreshCookie("", request, 0) } }
+      );
+    }
+
+    if (isLogout && !refreshToken) {
+      return buildLogoutResponse(
+        Response.json({ success: true, message: "Sesión cerrada correctamente", data: null }),
+        request
       );
     }
 
@@ -78,7 +88,7 @@ async function proxyRequest(request: NextRequest, context: RouteContext): Promis
       headers: buildForwardHeaders(request),
       body: BODYLESS_METHODS.has(method)
         ? undefined
-        : isRefresh
+        : isRefresh || isLogout
           ? JSON.stringify({ refreshToken })
           : await request.arrayBuffer(),
       cache: "no-store",
@@ -86,6 +96,10 @@ async function proxyRequest(request: NextRequest, context: RouteContext): Promis
 
     if (isLogin || isRefresh) {
       return buildAuthResponse(backendResponse, request, isLogin, isRefresh);
+    }
+
+    if (isLogout) {
+      return buildLogoutResponse(backendResponse, request);
     }
 
     return new Response(backendResponse.body, {
@@ -96,9 +110,9 @@ async function proxyRequest(request: NextRequest, context: RouteContext): Promis
   } catch (error) {
     console.error(`[BFF ERROR] ${method} ${backendUrl}:`, error);
 
-    const headers = isRefresh
-      ? { "Set-Cookie": serializeRefreshCookie("", request, 0) }
-      : undefined;
+    const headers = new Headers();
+    if (isRefresh) headers.append("Set-Cookie", serializeRefreshCookie("", request, 0));
+    if (isLogout) appendClearedRefreshCookies(headers, request);
 
     return Response.json(
       {
@@ -111,19 +125,40 @@ async function proxyRequest(request: NextRequest, context: RouteContext): Promis
   }
 }
 
-function serializeRefreshCookie(value: string, request: NextRequest, maxAge: number): string {
+function serializeRefreshCookie(
+  value: string,
+  request: NextRequest,
+  maxAge: number,
+  path = "/api/auth"
+): string {
   const forwardedProtocol = request.headers.get("x-forwarded-proto");
   const isHttps = forwardedProtocol === "https" || request.nextUrl.protocol === "https:";
   const parts = [
     `${REFRESH_COOKIE_NAME}=${encodeURIComponent(value)}`,
     "HttpOnly",
     "SameSite=Strict",
-    "Path=/api/auth/refresh",
+    `Path=${path}`,
     `Max-Age=${maxAge}`,
   ];
 
   if (isHttps) parts.push("Secure");
   return parts.join("; ");
+}
+
+function appendClearedRefreshCookies(headers: Headers, request: NextRequest): void {
+  headers.append("Set-Cookie", serializeRefreshCookie("", request, 0));
+  headers.append("Set-Cookie", serializeRefreshCookie("", request, 0, "/api/auth/refresh"));
+}
+
+function buildLogoutResponse(backendResponse: Response, request: NextRequest): Response {
+  const headers = buildResponseHeaders(backendResponse);
+  appendClearedRefreshCookies(headers, request);
+
+  return new Response(backendResponse.body, {
+    status: backendResponse.status,
+    statusText: backendResponse.statusText,
+    headers,
+  });
 }
 
 async function buildAuthResponse(

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
@@ -77,6 +78,7 @@ public class JwtTokenProvider {
         Date expiryDate = new Date(now.getTime() + refreshTokenExpirationMs);
 
         return Jwts.builder()
+                .id(UUID.randomUUID().toString())
                 .subject(username)
                 .claim(TOKEN_TYPE_CLAIM, REFRESH_TOKEN_TYPE)
                 .issuedAt(now)
@@ -102,13 +104,26 @@ public class JwtTokenProvider {
         return validateTokenOfType(authToken, REFRESH_TOKEN_TYPE);
     }
 
+    public Claims getRefreshTokenClaims(String token) {
+        Claims claims = parseClaims(token);
+        if (!REFRESH_TOKEN_TYPE.equals(claims.get(TOKEN_TYPE_CLAIM, String.class))
+                || claims.getId() == null || claims.getId().isBlank()) {
+            throw new JwtException("El token no es un refresh token válido");
+        }
+        return claims;
+    }
+
+    private Claims parseClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
+
     private boolean validateTokenOfType(String authToken, String expectedType) {
         try {
-            Claims claims = Jwts.parser()
-                    .verifyWith(getSigningKey())
-                    .build()
-                    .parseSignedClaims(authToken)
-                    .getPayload();
+            Claims claims = parseClaims(authToken);
             return expectedType.equals(claims.get(TOKEN_TYPE_CLAIM, String.class));
         } catch (SecurityException | MalformedJwtException e) {
             log.error("Firma JWT inválida: {}", e.getMessage());

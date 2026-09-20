@@ -22,10 +22,15 @@ export class AuthService {
     return AuthMapper.toUserFromResponse(response.data);
   }
 
-  static logout(): void {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
+  static async logout(): Promise<void> {
+    ApiClient.invalidateSession();
+    try {
+      await ApiClient.post<null>("/api/auth/logout", {});
+    } finally {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      }
     }
   }
 

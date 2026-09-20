@@ -2,6 +2,7 @@ import { ApiResponseDto, RefreshTokenResponseDto } from "@/dtos/auth.dto";
 
 export class ApiClient {
   private static refreshPromise: Promise<string> | null = null;
+  private static sessionGeneration = 0;
 
   private static getToken(): string | null {
     if (typeof window !== "undefined") {
@@ -24,6 +25,7 @@ export class ApiClient {
 
   private static refreshAccessToken(): Promise<string> {
     if (!this.refreshPromise) {
+      const generationAtStart = this.sessionGeneration;
       this.refreshPromise = fetch("/api/auth/refresh", {
         method: "POST",
         headers: {
@@ -38,12 +40,18 @@ export class ApiClient {
             throw new Error(payload.message || "No fue posible renovar la sesión");
           }
 
+          if (generationAtStart !== this.sessionGeneration) {
+            throw new Error("La sesión se cerró durante la renovación");
+          }
+
           localStorage.setItem("token", payload.data.token);
           window.dispatchEvent(new CustomEvent("auth:token-refreshed", { detail: payload.data.token }));
           return payload.data.token;
         })
         .catch((error) => {
-          this.clearSessionAndRedirect();
+          if (generationAtStart === this.sessionGeneration) {
+            this.clearSessionAndRedirect();
+          }
           throw error;
         })
         .finally(() => {
@@ -79,7 +87,8 @@ export class ApiClient {
 
       const isRefreshRequest = url === "/api/auth/refresh";
       const isLoginRequest = url === "/api/auth/login";
-      if (response.status === 401 && !hasRetried && !isRefreshRequest && !isLoginRequest) {
+      const isLogoutRequest = url === "/api/auth/logout";
+      if (response.status === 401 && !hasRetried && !isRefreshRequest && !isLoginRequest && !isLogoutRequest) {
         const refreshedToken = await this.refreshAccessToken();
         const retryHeaders = new Headers(options.headers);
         retryHeaders.set("Authorization", `Bearer ${refreshedToken}`);
@@ -96,6 +105,10 @@ export class ApiClient {
       console.error(`[API ERROR] ${options.method || "GET"} ${url}:`, error.message);
       throw error;
     }
+  }
+
+  static invalidateSession(): void {
+    this.sessionGeneration += 1;
   }
 
   static get<T>(endpoint: string): Promise<ApiResponseDto<T>> {
