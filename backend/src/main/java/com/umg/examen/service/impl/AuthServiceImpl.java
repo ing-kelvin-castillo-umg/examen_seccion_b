@@ -1,9 +1,12 @@
 package com.umg.examen.service.impl;
 
 import com.umg.examen.dto.request.LoginRequest;
+import com.umg.examen.dto.request.RefreshTokenRequest;
 import com.umg.examen.dto.response.AuthResponse;
+import com.umg.examen.dto.response.RefreshTokenResponse;
 import com.umg.examen.dto.response.UserResponse;
 import com.umg.examen.entity.User;
+import com.umg.examen.exception.InvalidRefreshTokenException;
 import com.umg.examen.mapper.UserMapper;
 import com.umg.examen.repository.UserRepository;
 import com.umg.examen.security.JwtTokenProvider;
@@ -43,11 +46,31 @@ public class AuthServiceImpl implements AuthService {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String token = tokenProvider.generateToken(authentication);
+        String refreshToken = tokenProvider.generateRefreshToken(request.getUsername());
 
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + request.getUsername()));
 
-        return userMapper.toAuthResponse(user, token);
+        return userMapper.toAuthResponse(user, token, refreshToken);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public RefreshTokenResponse refresh(RefreshTokenRequest request) {
+        String refreshToken = request.getRefreshToken();
+        if (!tokenProvider.validateRefreshToken(refreshToken)) {
+            throw new InvalidRefreshTokenException("Refresh token inválido o expirado");
+        }
+
+        String username = tokenProvider.getUsernameFromJwt(refreshToken);
+        User user = userRepository.findByUsername(username)
+                .filter(candidate -> Boolean.TRUE.equals(candidate.getEnabled()))
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado o inactivo: " + username));
+
+        java.util.List<String> roles = user.getRoles().stream()
+                .map(role -> role.getName())
+                .toList();
+        return new RefreshTokenResponse(tokenProvider.generateAccessToken(username, roles));
     }
 
     @Override

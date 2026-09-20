@@ -4,6 +4,8 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const BACKEND_URL = process.env.BACKEND_URL || "http://backend:8080";
+const REFRESH_COOKIE_NAME = "refresh_token";
+const REFRESH_COOKIE_MAX_AGE = Number(process.env.REFRESH_TOKEN_COOKIE_MAX_AGE_SECONDS || "1800");
 const BODYLESS_METHODS = new Set(["GET", "HEAD"]);
 const FORWARDED_REQUEST_HEADERS = ["authorization", "content-type", "accept"];
 const EXCLUDED_RESPONSE_HEADERS = new Set([
@@ -57,15 +59,34 @@ function buildResponseHeaders(response: Response): Headers {
 
 async function proxyRequest(request: NextRequest, context: RouteContext): Promise<Response> {
   const method = request.method.toUpperCase();
-  const backendUrl = buildBackendUrl(context.params.path, request);
+  const path = context.params.path;
+  const backendUrl = buildBackendUrl(path, request);
+  const isLogin = method === "POST" && path.join("/") === "auth/login";
+  const isRefresh = method === "POST" && path.join("/") === "auth/refresh";
 
   try {
+    const refreshToken = isRefresh ? request.cookies.get(REFRESH_COOKIE_NAME)?.value : undefined;
+    if (isRefresh && !refreshToken) {
+      return Response.json(
+        { success: false, message: "No hay un refresh token disponible.", data: null },
+        { status: 401, headers: { "Set-Cookie": serializeRefreshCookie("", request, 0) } }
+      );
+    }
+
     const backendResponse = await fetch(backendUrl, {
       method,
       headers: buildForwardHeaders(request),
-      body: BODYLESS_METHODS.has(method) ? undefined : await request.arrayBuffer(),
+      body: BODYLESS_METHODS.has(method)
+        ? undefined
+        : isRefresh
+          ? JSON.stringify({ refreshToken })
+          : await request.arrayBuffer(),
       cache: "no-store",
     });
+
+    if (isLogin || isRefresh) {
+      return buildAuthResponse(backendResponse, request, isLogin, isRefresh);
+    }
 
     return new Response(backendResponse.body, {
       status: backendResponse.status,
@@ -75,15 +96,63 @@ async function proxyRequest(request: NextRequest, context: RouteContext): Promis
   } catch (error) {
     console.error(`[BFF ERROR] ${method} ${backendUrl}:`, error);
 
+    const headers = isRefresh
+      ? { "Set-Cookie": serializeRefreshCookie("", request, 0) }
+      : undefined;
+
     return Response.json(
       {
         success: false,
         message: "No se pudo conectar con el backend.",
         data: null,
       },
-      { status: 502 }
+      { status: 502, headers }
     );
   }
+}
+
+function serializeRefreshCookie(value: string, request: NextRequest, maxAge: number): string {
+  const forwardedProtocol = request.headers.get("x-forwarded-proto");
+  const isHttps = forwardedProtocol === "https" || request.nextUrl.protocol === "https:";
+  const parts = [
+    `${REFRESH_COOKIE_NAME}=${encodeURIComponent(value)}`,
+    "HttpOnly",
+    "SameSite=Strict",
+    "Path=/api/auth/refresh",
+    `Max-Age=${maxAge}`,
+  ];
+
+  if (isHttps) parts.push("Secure");
+  return parts.join("; ");
+}
+
+async function buildAuthResponse(
+  backendResponse: Response,
+  request: NextRequest,
+  isLogin: boolean,
+  isRefresh: boolean
+): Promise<Response> {
+  const payload = await backendResponse.json();
+  const headers = buildResponseHeaders(backendResponse);
+
+  if (isLogin && backendResponse.ok && payload?.data?.refreshToken) {
+    headers.set(
+      "Set-Cookie",
+      serializeRefreshCookie(payload.data.refreshToken, request, REFRESH_COOKIE_MAX_AGE)
+    );
+    delete payload.data.refreshToken;
+  }
+
+  if (isRefresh && !backendResponse.ok) {
+    headers.set("Set-Cookie", serializeRefreshCookie("", request, 0));
+  }
+
+  headers.set("Content-Type", "application/json");
+  return new Response(JSON.stringify(payload), {
+    status: backendResponse.status,
+    statusText: backendResponse.statusText,
+    headers,
+  });
 }
 
 export async function GET(request: NextRequest, context: RouteContext): Promise<Response> {

@@ -30,6 +30,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setToken(session.token);
     }
     setLoading(false);
+
+    const handleTokenRefreshed = (event: Event) => {
+      setToken((event as CustomEvent<string>).detail);
+    };
+    const handleSessionExpired = () => {
+      setUser(null);
+      setToken(null);
+    };
+
+    window.addEventListener("auth:token-refreshed", handleTokenRefreshed);
+    window.addEventListener("auth:session-expired", handleSessionExpired);
+
+    return () => {
+      window.removeEventListener("auth:token-refreshed", handleTokenRefreshed);
+      window.removeEventListener("auth:session-expired", handleSessionExpired);
+    };
   }, []);
 
   const login = async (username: string, password: string) => {
