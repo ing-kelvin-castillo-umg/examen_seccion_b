@@ -111,14 +111,14 @@ export default function ProductsPage() {
         <div
           className={`fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-5 py-3 rounded-2xl shadow-xl border text-sm font-medium animate-in slide-in-from-bottom-5 duration-300 ${
             toast.type === "success"
-              ? "bg-emerald-50 border-emerald-200 text-emerald-800"
-              : "bg-rose-50 border-rose-200 text-rose-800"
+              ? "bg-success-50 border-success-200 text-success-800"
+              : "bg-error-50 border-error-200 text-error-800"
           }`}
         >
           {toast.type === "success" ? (
-            <CheckCircle className="w-5 h-5 text-emerald-600" />
+            <CheckCircle className="w-5 h-5 text-success-600" />
           ) : (
-            <AlertTriangle className="w-5 h-5 text-rose-600" />
+            <AlertTriangle className="w-5 h-5 text-error-600" />
           )}
           <span>{toast.message}</span>
         </div>
@@ -127,14 +127,14 @@ export default function ProductsPage() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">
-            <Boxes className="w-4 h-4 text-blue-600" />
+          <div className="flex items-center gap-2 text-neutral-500 text-xs font-semibold uppercase tracking-wider mb-1">
+            <Boxes className="w-4 h-4 text-primary-600" />
             <span>Módulo de Inventario</span>
           </div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-3xl font-black text-neutral-900 tracking-tight">
             Gestión de Productos
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-neutral-500 mt-1">
             Consulta, busca y gestiona el inventario de productos en tiempo real.
           </p>
         </div>
@@ -145,23 +145,23 @@ export default function ProductsPage() {
             onClick={loadProducts}
             disabled={loading}
             title="Recargar listado"
-            className="p-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-600 transition-colors shadow-sm disabled:opacity-50"
+            className="p-2.5 rounded-xl border border-neutral-300 bg-white hover:bg-neutral-50 text-neutral-600 transition-colors shadow-sm disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-blue-600" : ""}`} />
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-primary-600" : ""}`} />
           </button>
 
-          <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-200 shadow-sm text-xs font-semibold text-slate-700">
+          <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-neutral-200 shadow-sm text-xs font-semibold text-neutral-700">
             {isAdmin ? (
-              <ShieldCheck className="w-4 h-4 text-indigo-600" />
+              <ShieldCheck className="w-4 h-4 text-primary-600" />
             ) : (
-              <UserIcon className="w-4 h-4 text-emerald-600" />
+              <UserIcon className="w-4 h-4 text-success-600" />
             )}
             <span>Rol:</span>
             <span
               className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${
                 isAdmin
-                  ? "bg-indigo-100 text-indigo-800"
-                  : "bg-emerald-100 text-emerald-800"
+                  ? "bg-primary-100 text-primary-800"
+                  : "bg-success-100 text-success-800"
               }`}
             >
               {isAdmin ? "ADMINISTRADOR" : "USUARIO"}

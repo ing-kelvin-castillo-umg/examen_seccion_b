@@ -2,10 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Fase 4 — variables CSS para lo que las clases de Tailwind no resuelven
+ * directamente: el gradiente de fondo del body (necesita canales RGB
+ * separados) y el color del anillo de foco global. Los valores corresponden
+ * a la nueva paleta violeta/índigo + ámbar de tailwind.config.ts.
+ */
 :root {
-  --foreground-rgb: 15, 23, 42;
-  --background-start-rgb: 248, 250, 252;
+  /* neutral-900 (#2e293d) en RGB, para el texto base */
+  --foreground-rgb: 46, 41, 61;
+  /* neutral-50 (#f7f6f9) en RGB, para el inicio del degradado de fondo */
+  --background-start-rgb: 247, 246, 249;
   --background-end-rgb: 255, 255, 255;
+
+  /* primary-500 (#4e14eb), usado por el anillo de foco global de más abajo */
+  --color-focus-ring: #4e14eb;
 }
 
 body {
@@ -20,21 +31,32 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-/* Custom scrollbar */
+/*
+ * Foco visible para accesibilidad de teclado (Fase 4): red de seguridad
+ * global además de los `focus-visible:ring-*` que ya se agregaron en los
+ * elementos interactivos principales. Cubre cualquier control que no tenga
+ * un estilo de foco explícito (por ejemplo, iconos de acción sueltos).
+ */
+*:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Custom scrollbar (tonos de la escala neutral) */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #eceaf0; /* neutral-100 */
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #b8b3c6; /* neutral-300 */
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #9992aa; /* neutral-400 */
 }
