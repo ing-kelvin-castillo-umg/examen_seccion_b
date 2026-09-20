@@ -22,6 +22,7 @@ export class ApiClient {
   }
 
   private static async doRefresh(refreshToken: string): Promise<string> {
+    const refreshTokenUsed = typeof window !== "undefined" ? localStorage.getItem("refreshToken") : null;
     const refreshUrl = `${API_BASE_URL}/api/auth/refresh`;
     const response = await fetch(refreshUrl, {
       method: "POST",
@@ -39,6 +40,13 @@ export class ApiClient {
     const resData = await response.json();
     if (!resData.success || !resData.data || !resData.data.token) {
       throw new Error("Invalid refresh response");
+    }
+
+    if (typeof window !== "undefined") {
+      const currentRefreshToken = localStorage.getItem("refreshToken");
+      if (currentRefreshToken === null || currentRefreshToken !== refreshTokenUsed) {
+        throw new Error("Session was invalidated during refresh");
+      }
     }
 
     const newToken = resData.data.token;
@@ -76,6 +84,7 @@ export class ApiClient {
           response.status === 401 &&
           !endpoint.includes("/api/auth/login") &&
           !endpoint.includes("/api/auth/refresh") &&
+          !endpoint.includes("/api/auth/logout") &&
           !_isRetry
         ) {
           const refreshToken = typeof window !== "undefined" ? localStorage.getItem("refreshToken") : null;

@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -13,7 +13,24 @@ import {
   AlertCircle,
   Loader2,
   ChevronLeft,
+  Info,
 } from "lucide-react";
+
+function InactivityMessage() {
+  const searchParams = useSearchParams();
+  const reason = searchParams.get("reason");
+
+  if (reason === "inactivity") {
+    return (
+      <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-xl text-xs text-blue-300 flex items-center gap-2">
+        <Info className="w-4 h-4 shrink-0" />
+        <span>Sesión cerrada por inactividad</span>
+      </div>
+    );
+  }
+
+  return null;
+}
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -103,6 +120,11 @@ export default function LoginPage() {
             </button>
           </div>
         </div>
+
+        {/* Info Notification (Inactivity) */}
+        <Suspense fallback={null}>
+          <InactivityMessage />
+        </Suspense>
 
         {/* Error Notification */}
         {error && (

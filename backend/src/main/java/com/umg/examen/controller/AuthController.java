@@ -48,4 +48,11 @@ public class AuthController {
         AuthResponse authResponse = authService.refresh(request);
         return ResponseEntity.ok(ApiResponse.success("Token renovado exitosamente", authResponse));
     }
+
+    @PostMapping("/logout")
+    @Operation(summary = "Cerrar sesión", description = "Revoca el refresh token para cerrar la sesión del usuario")
+    public ResponseEntity<ApiResponse<Void>> logout(@Valid @RequestBody com.umg.examen.dto.request.RefreshTokenRequest request) {
+        authService.logout(request);
+        return ResponseEntity.ok(ApiResponse.success("Sesión cerrada exitosamente", null));
+    }
 }

@@ -25,11 +25,34 @@ export class AuthService {
     return AuthMapper.toUserFromResponse(response.data);
   }
 
-  static logout(): void {
+  static clearStoredSession(): void {
     if (typeof window !== "undefined") {
       localStorage.removeItem("token");
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("user");
+    }
+  }
+
+  static async logout(): Promise<void> {
+    if (typeof window === "undefined") return;
+
+    const refreshToken = localStorage.getItem("refreshToken");
+    AuthService.clearStoredSession();
+
+    if (refreshToken) {
+      try {
+        await fetch("/api/auth/logout", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ refreshToken }),
+        });
+      } catch (error) {
+        console.error("Logout request failed:", error);
+      } finally {
+        AuthService.clearStoredSession();
+      }
     }
   }
 

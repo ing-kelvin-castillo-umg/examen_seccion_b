@@ -80,4 +80,10 @@ public class AuthServiceImpl implements AuthService {
                 })
                 .orElseThrow(() -> new org.springframework.security.authentication.BadCredentialsException("Refresh token is not in database!"));
     }
+
+    @Override
+    @Transactional
+    public void logout(com.umg.examen.dto.request.RefreshTokenRequest request) {
+        refreshTokenService.deleteByToken(request.getRefreshToken());
+    }
 }

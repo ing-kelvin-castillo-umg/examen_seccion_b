@@ -1,9 +1,10 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from "react";
 import { User } from "@/entities/user.entity";
 import { AuthService } from "@/services/auth.service";
 import { useRouter } from "next/navigation";
+import { useInactivityLogout } from "@/hooks/useInactivityLogout";
 
 interface AuthContextType {
   user: User | null;
@@ -12,7 +13,7 @@ interface AuthContextType {
   isAdmin: boolean;
   loading: boolean;
   login: (username: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: (reason?: "manual" | "inactivity") => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,6 +23,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const logoutInProgressRef = useRef(false);
 
   useEffect(() => {
     const session = AuthService.getStoredSession();
@@ -38,15 +40,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(session.token);
   };
 
-  const logout = () => {
-    AuthService.logout();
+  const logout = useCallback(async (reason: "manual" | "inactivity" = "manual") => {
+    if (logoutInProgressRef.current) return;
+    logoutInProgressRef.current = true;
+
+    await AuthService.logout();
     setUser(null);
     setToken(null);
-    router.push("/");
-  };
+
+    if (reason === "inactivity") {
+      router.replace("/login?reason=inactivity");
+    } else {
+      router.replace("/login");
+    }
+
+    logoutInProgressRef.current = false;
+  }, [router]);
 
   const isAdmin = !!(user?.roles && user.roles.includes("ROLE_ADMIN"));
   const isAuthenticated = !!token && !!user;
+
+  useInactivityLogout({
+    enabled: isAuthenticated,
+    onInactive: () => logout("inactivity"),
+  });
 
   return (
     <AuthContext.Provider
