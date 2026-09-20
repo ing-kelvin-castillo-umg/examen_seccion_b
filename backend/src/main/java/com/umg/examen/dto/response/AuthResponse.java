@@ -8,7 +8,10 @@ import java.util.List;
 public class AuthResponse {
 
     @Schema(description = "Token de acceso JWT")
-    private String token;
+    private String accessToken;
+
+    @Schema(description = "Token JWT de renovación")
+    private String refreshToken;
 
     @Schema(description = "Tipo de token", example = "Bearer")
     private String type = "Bearer";
@@ -27,8 +30,9 @@ public class AuthResponse {
 
     public AuthResponse() {}
 
-    public AuthResponse(String token, String type, String username, String fullName, String email, List<String> roles) {
-        this.token = token;
+    public AuthResponse(String accessToken, String refreshToken, String type, String username, String fullName, String email, List<String> roles) {
+        this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
         this.type = type != null ? type : "Bearer";
         this.username = username;
         this.fullName = fullName;
@@ -36,12 +40,20 @@ public class AuthResponse {
         this.roles = roles;
     }
 
-    public String getToken() {
-        return token;
+    public String getAccessToken() {
+        return accessToken;
     }
 
-    public void setToken(String token) {
-        this.token = token;
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
     }
 
     public String getType() {

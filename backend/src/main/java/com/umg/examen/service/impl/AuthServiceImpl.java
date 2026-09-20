@@ -1,7 +1,9 @@
 package com.umg.examen.service.impl;
 
 import com.umg.examen.dto.request.LoginRequest;
+import com.umg.examen.dto.request.RefreshTokenRequest;
 import com.umg.examen.dto.response.AuthResponse;
+import com.umg.examen.dto.response.RefreshTokenResponse;
 import com.umg.examen.dto.response.UserResponse;
 import com.umg.examen.entity.User;
 import com.umg.examen.mapper.UserMapper;
@@ -15,6 +17,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -42,12 +46,30 @@ public class AuthServiceImpl implements AuthService {
         );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        String token = tokenProvider.generateToken(authentication);
+        String accessToken = tokenProvider.generateAccessToken(authentication);
+        String refreshToken = tokenProvider.generateRefreshToken(request.getUsername());
 
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + request.getUsername()));
 
-        return userMapper.toAuthResponse(user, token);
+        return userMapper.toAuthResponse(user, accessToken, refreshToken);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public RefreshTokenResponse refresh(RefreshTokenRequest request) {
+        String refreshToken = request.getRefreshToken();
+        if (!tokenProvider.validateRefreshToken(refreshToken)) {
+            throw new org.springframework.security.authentication.BadCredentialsException("Refresh token inválido o expirado");
+        }
+
+        String username = tokenProvider.getUsernameFromJwt(refreshToken);
+        User user = userRepository.findByUsername(username)
+                .filter(foundUser -> Boolean.TRUE.equals(foundUser.getEnabled()))
+                .orElseThrow(() -> new org.springframework.security.authentication.BadCredentialsException("El usuario del refresh token no es válido"));
+        List<String> roles = user.getRoles().stream().map(role -> role.getName()).toList();
+
+        return new RefreshTokenResponse(tokenProvider.generateAccessTokenFromUsername(username, roles), "Bearer");
     }
 
     @Override

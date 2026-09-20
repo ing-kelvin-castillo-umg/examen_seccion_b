@@ -27,15 +27,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const session = AuthService.getStoredSession();
     if (session) {
       setUser(session.user);
-      setToken(session.token);
+      setToken(session.accessToken);
     }
     setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      setUser(null);
+      setToken(null);
+    };
+    window.addEventListener("auth:logout", handleSessionExpired);
+    return () => window.removeEventListener("auth:logout", handleSessionExpired);
   }, []);
 
   const login = async (username: string, password: string) => {
     const session = await AuthService.login({ username, password });
     setUser(session.user);
-    setToken(session.token);
+    setToken(session.accessToken);
   };
 
   const logout = () => {

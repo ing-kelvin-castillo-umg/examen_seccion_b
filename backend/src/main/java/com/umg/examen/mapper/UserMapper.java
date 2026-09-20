@@ -31,7 +31,7 @@ public class UserMapper {
         return response;
     }
 
-    public AuthResponse toAuthResponse(User user, String token) {
+    public AuthResponse toAuthResponse(User user, String accessToken, String refreshToken) {
         if (user == null) {
             return null;
         }
@@ -40,7 +40,8 @@ public class UserMapper {
                 .collect(Collectors.toList());
 
         AuthResponse response = new AuthResponse();
-        response.setToken(token);
+        response.setAccessToken(accessToken);
+        response.setRefreshToken(refreshToken);
         response.setType("Bearer");
         response.setUsername(user.getUsername());
         response.setFullName(user.getFullName());

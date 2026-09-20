@@ -24,39 +24,61 @@ public class JwtTokenProvider {
     @Value("${app.jwt.secret}")
     private String jwtSecret;
 
-    @Value("${app.jwt.expiration-ms:86400000}")
-    private long jwtExpirationMs;
+    private static final String TOKEN_TYPE_CLAIM = "tokenType";
+    private static final String ACCESS_TOKEN_TYPE = "access";
+    private static final String REFRESH_TOKEN_TYPE = "refresh";
+
+    @Value("${app.jwt.access-expiration-ms:60000}")
+    private long accessTokenExpirationMs;
+
+    @Value("${app.jwt.refresh-expiration-ms:900000}")
+    private long refreshTokenExpirationMs;
 
     private SecretKey getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String generateToken(Authentication authentication) {
+    public String generateAccessToken(Authentication authentication) {
         UserDetails userPrincipal = (UserDetails) authentication.getPrincipal();
         List<String> roles = userPrincipal.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
 
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
+        Date expiryDate = new Date(now.getTime() + accessTokenExpirationMs);
 
         return Jwts.builder()
                 .subject(userPrincipal.getUsername())
                 .claim("roles", roles)
+                .claim(TOKEN_TYPE_CLAIM, ACCESS_TOKEN_TYPE)
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(getSigningKey())
                 .compact();
     }
 
-    public String generateTokenFromUsername(String username, List<String> roles) {
+    public String generateAccessTokenFromUsername(String username, List<String> roles) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
+        Date expiryDate = new Date(now.getTime() + accessTokenExpirationMs);
 
         return Jwts.builder()
                 .subject(username)
                 .claim("roles", roles)
+                .claim(TOKEN_TYPE_CLAIM, ACCESS_TOKEN_TYPE)
+                .issuedAt(now)
+                .expiration(expiryDate)
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    public String generateRefreshToken(String username) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + refreshTokenExpirationMs);
+
+        return Jwts.builder()
+                .subject(username)
+                .claim(TOKEN_TYPE_CLAIM, REFRESH_TOKEN_TYPE)
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(getSigningKey())
@@ -72,13 +94,22 @@ public class JwtTokenProvider {
                 .getSubject();
     }
 
-    public boolean validateToken(String authToken) {
+    public boolean validateAccessToken(String authToken) {
+        return validateToken(authToken, ACCESS_TOKEN_TYPE);
+    }
+
+    public boolean validateRefreshToken(String refreshToken) {
+        return validateToken(refreshToken, REFRESH_TOKEN_TYPE);
+    }
+
+    private boolean validateToken(String authToken, String expectedType) {
         try {
-            Jwts.parser()
+            Claims claims = Jwts.parser()
                     .verifyWith(getSigningKey())
                     .build()
-                    .parseSignedClaims(authToken);
-            return true;
+                    .parseSignedClaims(authToken)
+                    .getPayload();
+            return expectedType.equals(claims.get(TOKEN_TYPE_CLAIM, String.class));
         } catch (SecurityException | MalformedJwtException e) {
             log.error("Firma JWT inválida: {}", e.getMessage());
         } catch (ExpiredJwtException e) {
