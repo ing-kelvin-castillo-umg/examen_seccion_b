@@ -1,6 +1,7 @@
 package com.umg.examen.service.impl;
 
 import com.umg.examen.dto.request.LoginRequest;
+import com.umg.examen.dto.request.LogoutRequest;
 import com.umg.examen.dto.request.RefreshTokenRequest;
 import com.umg.examen.dto.response.AuthResponse;
 import com.umg.examen.dto.response.UserResponse;
@@ -87,6 +88,24 @@ public class AuthServiceImpl implements AuthService {
         String newRefreshToken = tokenProvider.generateRefreshToken(username, nextRefreshVersion);
 
         return buildAuthResponse(refreshedUser, newAccessToken, newRefreshToken);
+    }
+
+    @Override
+    @Transactional
+    public void logout(LogoutRequest request) {
+        String refreshToken = request.getRefreshToken();
+
+        if (!tokenProvider.validateRefreshToken(refreshToken)) {
+            throw new InvalidRefreshTokenException();
+        }
+
+        String username = tokenProvider.getUsernameFromJwt(refreshToken);
+        Integer tokenVersion = tokenProvider.getRefreshTokenVersion(refreshToken);
+        int updatedRows = userRepository.rotateRefreshTokenVersion(username, tokenVersion);
+
+        if (updatedRows != 1) {
+            throw new InvalidRefreshTokenException();
+        }
     }
 
     @Override

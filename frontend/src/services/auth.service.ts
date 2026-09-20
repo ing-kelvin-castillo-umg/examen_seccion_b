@@ -4,6 +4,9 @@ import { AuthMapper } from "@/mappers/auth.mapper";
 import { ApiClient } from "./api.client";
 
 export class AuthService {
+  static readonly INACTIVITY_LOGOUT_MESSAGE = "Sesión cerrada por inactividad";
+  private static readonly LOGOUT_MESSAGE_KEY = "auth:logout-message";
+
   static async login(credentials: { username: string; password: string }): Promise<AuthSession> {
     const dto = AuthMapper.toLoginDto(credentials);
     const response = await ApiClient.post<AuthResponseDto>("/api/auth/login", dto);
@@ -23,12 +26,36 @@ export class AuthService {
     return AuthMapper.toUserFromResponse(response.data);
   }
 
-  static logout(): void {
+  static clearSession(): void {
     if (typeof window !== "undefined") {
       localStorage.removeItem("token");
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("user");
     }
+  }
+
+  static async logout(): Promise<void> {
+    try {
+      await ApiClient.revokeSession();
+    } catch (error) {
+      console.warn("No fue posible confirmar el logout en el backend:", error);
+    } finally {
+      this.clearSession();
+    }
+  }
+
+  static storeInactivityLogoutMessage(): void {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(this.LOGOUT_MESSAGE_KEY, this.INACTIVITY_LOGOUT_MESSAGE);
+    }
+  }
+
+  static consumeLogoutMessage(): string | null {
+    if (typeof window === "undefined") return null;
+
+    const message = sessionStorage.getItem(this.LOGOUT_MESSAGE_KEY);
+    sessionStorage.removeItem(this.LOGOUT_MESSAGE_KEY);
+    return message;
   }
 
   static getStoredSession(): AuthSession | null {
@@ -39,7 +66,7 @@ export class AuthService {
     const userStr = localStorage.getItem("user");
 
     if (!token || !refreshToken || !userStr) {
-      this.logout();
+      this.clearSession();
       return null;
     }
 
@@ -53,6 +80,7 @@ export class AuthService {
         isAdmin: user.roles?.includes("ROLE_ADMIN") || false,
       };
     } catch {
+      this.clearSession();
       return null;
     }
   }

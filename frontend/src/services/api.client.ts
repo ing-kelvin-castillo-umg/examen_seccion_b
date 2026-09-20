@@ -2,6 +2,8 @@ import { ApiResponseDto, AuthResponseDto } from "@/dtos/auth.dto";
 
 export class ApiClient {
   private static refreshPromise: Promise<string> | null = null;
+  private static logoutPromise: Promise<void> | null = null;
+  private static logoutInProgress = false;
 
   private static getToken(): string | null {
     if (typeof window !== "undefined") {
@@ -18,7 +20,11 @@ export class ApiClient {
   }
 
   private static canRefresh(endpoint: string): boolean {
-    return endpoint !== "/api/auth/login" && endpoint !== "/api/auth/refresh";
+    return (
+      endpoint !== "/api/auth/login" &&
+      endpoint !== "/api/auth/refresh" &&
+      endpoint !== "/api/auth/logout"
+    );
   }
 
   private static clearExpiredSession(): void {
@@ -73,6 +79,45 @@ export class ApiClient {
     return this.refreshPromise;
   }
 
+  private static async performLogout(): Promise<void> {
+    if (this.refreshPromise) {
+      try {
+        await this.refreshPromise;
+      } catch {
+        return;
+      }
+    }
+
+    const refreshToken = this.getRefreshToken();
+    if (!refreshToken) return;
+
+    const response = await fetch("/api/auth/logout", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ refreshToken }),
+    });
+
+    if (!response.ok) {
+      const payload = (await response.json().catch(() => null)) as ApiResponseDto<unknown> | null;
+      throw new Error(payload?.message || "No fue posible invalidar la sesión en el backend");
+    }
+  }
+
+  static revokeSession(): Promise<void> {
+    if (!this.logoutPromise) {
+      this.logoutInProgress = true;
+      this.logoutPromise = this.performLogout().finally(() => {
+        this.logoutPromise = null;
+        this.logoutInProgress = false;
+      });
+    }
+
+    return this.logoutPromise;
+  }
+
   static async request<T>(
     endpoint: string,
     options: RequestInit = {},
@@ -97,7 +142,7 @@ export class ApiClient {
         headers,
       });
 
-      if (response.status === 401 && this.canRefresh(endpoint)) {
+      if (response.status === 401 && this.canRefresh(endpoint) && !this.logoutInProgress) {
         if (allowRefresh && this.getRefreshToken()) {
           try {
             await this.refreshAccessToken();

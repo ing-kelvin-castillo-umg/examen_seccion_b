@@ -53,6 +53,7 @@ services:
     restart: unless-stopped
     environment:
       BACKEND_URL: http://backend:8080
+      INACTIVITY_TIMEOUT_MS: ${INACTIVITY_TIMEOUT_MS:-180000}
     ports:
       - "3000:3000"
     depends_on:

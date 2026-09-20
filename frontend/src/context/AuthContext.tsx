@@ -1,8 +1,9 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { User } from "@/entities/user.entity";
 import { AuthService } from "@/services/auth.service";
+import { useInactivityLogout } from "@/hooks/useInactivityLogout";
 import { useRouter } from "next/navigation";
 
 interface AuthContextType {
@@ -12,7 +13,7 @@ interface AuthContextType {
   isAdmin: boolean;
   loading: boolean;
   login: (username: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,6 +22,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const logoutInProgressRef = useRef(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -56,15 +58,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(session.token);
   };
 
-  const logout = () => {
-    AuthService.logout();
-    setUser(null);
-    setToken(null);
-    router.push("/");
-  };
-
   const isAdmin = !!(user?.roles && user.roles.includes("ROLE_ADMIN"));
   const isAuthenticated = !!token && !!user;
+
+  const performLogout = useCallback(
+    async (reason: "manual" | "inactivity") => {
+      if (logoutInProgressRef.current) return;
+
+      logoutInProgressRef.current = true;
+      try {
+        await AuthService.logout();
+      } finally {
+        if (reason === "inactivity") {
+          AuthService.storeInactivityLogoutMessage();
+        }
+
+        setUser(null);
+        setToken(null);
+        logoutInProgressRef.current = false;
+
+        if (reason === "inactivity") {
+          router.replace("/login");
+        } else {
+          router.push("/");
+        }
+      }
+    },
+    [router],
+  );
+
+  const logout = useCallback(() => performLogout("manual"), [performLogout]);
+  const logoutByInactivity = useCallback(
+    () => performLogout("inactivity"),
+    [performLogout],
+  );
+
+  useInactivityLogout({
+    enabled: !loading && isAuthenticated,
+    onInactive: logoutByInactivity,
+  });
 
   return (
     <AuthContext.Provider
