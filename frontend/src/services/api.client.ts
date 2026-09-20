@@ -4,6 +4,18 @@ export const ACCESS_TOKEN_REFRESHED_EVENT = "auth:access-token-refreshed";
 
 export class ApiClient {
   private static refreshPromise: Promise<string> | null = null;
+  private static logoutInProgress = false;
+  private static sessionRevision = 0;
+
+  static beginLogout(): void {
+    this.logoutInProgress = true;
+    this.sessionRevision += 1;
+  }
+
+  static markSessionActive(): void {
+    this.logoutInProgress = false;
+    this.sessionRevision += 1;
+  }
 
   private static getAccessToken(): string | null {
     if (typeof window !== "undefined") {
@@ -36,10 +48,21 @@ export class ApiClient {
 
   private static canAttemptRefresh(endpoint: string, accessToken: string | null): boolean {
     const path = endpoint.split("?", 1)[0];
-    return !!accessToken && path !== "/api/auth/login" && path !== "/api/auth/refresh";
+    return (
+      !!accessToken &&
+      !this.logoutInProgress &&
+      path !== "/api/auth/login" &&
+      path !== "/api/auth/refresh" &&
+      path !== "/api/auth/logout"
+    );
   }
 
   private static async performRefresh(): Promise<string> {
+    if (this.logoutInProgress) {
+      throw new Error("La sesion se esta cerrando.");
+    }
+
+    const refreshSessionRevision = this.sessionRevision;
     const refreshToken = this.getRefreshToken();
     if (!refreshToken) {
       throw new Error("No existe un refresh token para renovar la sesión.");
@@ -60,6 +83,13 @@ export class ApiClient {
       throw new Error(payload.message || "No fue posible renovar la sesión.");
     }
 
+    if (
+      this.logoutInProgress ||
+      refreshSessionRevision !== this.sessionRevision
+    ) {
+      throw new Error("La sesion fue cerrada durante la renovacion.");
+    }
+
     localStorage.setItem("accessToken", payload.data.accessToken);
     window.dispatchEvent(
       new CustomEvent<string>(ACCESS_TOKEN_REFRESHED_EVENT, {
@@ -74,7 +104,9 @@ export class ApiClient {
     if (!this.refreshPromise) {
       this.refreshPromise = this.performRefresh()
         .catch((error) => {
-          this.clearSessionAndRedirect();
+          if (!this.logoutInProgress) {
+            this.clearSessionAndRedirect();
+          }
           throw error;
         })
         .finally(() => {
@@ -87,6 +119,8 @@ export class ApiClient {
 
   private static clearSessionAndRedirect(): void {
     if (typeof window === "undefined") return;
+
+    this.beginLogout();
 
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");

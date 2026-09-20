@@ -10,6 +10,7 @@ import com.umg.examen.exception.InvalidRefreshTokenException;
 import com.umg.examen.mapper.UserMapper;
 import com.umg.examen.repository.UserRepository;
 import com.umg.examen.security.JwtTokenProvider;
+import com.umg.examen.security.RefreshTokenRevocationService;
 import com.umg.examen.service.AuthService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -28,15 +29,18 @@ public class AuthServiceImpl implements AuthService {
     private final JwtTokenProvider tokenProvider;
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final RefreshTokenRevocationService refreshTokenRevocationService;
 
     public AuthServiceImpl(AuthenticationManager authenticationManager,
                            JwtTokenProvider tokenProvider,
                            UserRepository userRepository,
-                           UserMapper userMapper) {
+                           UserMapper userMapper,
+                           RefreshTokenRevocationService refreshTokenRevocationService) {
         this.authenticationManager = authenticationManager;
         this.tokenProvider = tokenProvider;
         this.userRepository = userRepository;
         this.userMapper = userMapper;
+        this.refreshTokenRevocationService = refreshTokenRevocationService;
     }
 
     @Override
@@ -65,6 +69,11 @@ public class AuthServiceImpl implements AuthService {
             throw new InvalidRefreshTokenException("Refresh token inválido o expirado");
         }
 
+        String tokenId = tokenProvider.getTokenIdFromJwt(refreshToken);
+        if (tokenId == null || refreshTokenRevocationService.isRevoked(tokenId)) {
+            throw new InvalidRefreshTokenException("Refresh token revocado o sin identificador valido");
+        }
+
         String username = tokenProvider.getUsernameFromJwt(refreshToken);
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new InvalidRefreshTokenException("El usuario del refresh token ya no es válido"));
@@ -79,6 +88,25 @@ public class AuthServiceImpl implements AuthService {
         String accessToken = tokenProvider.generateAccessTokenFromUsername(user.getUsername(), roles);
 
         return new RefreshTokenResponse(accessToken);
+    }
+
+    @Override
+    public void logout(RefreshTokenRequest request) {
+        String refreshToken = request.getRefreshToken();
+
+        if (!tokenProvider.validateRefreshToken(refreshToken)) {
+            throw new InvalidRefreshTokenException("Refresh token invalido o expirado");
+        }
+
+        String tokenId = tokenProvider.getTokenIdFromJwt(refreshToken);
+        if (tokenId == null) {
+            throw new InvalidRefreshTokenException("Refresh token sin identificador valido");
+        }
+
+        refreshTokenRevocationService.revoke(
+                tokenId,
+                tokenProvider.getExpirationFromJwt(refreshToken)
+        );
     }
 
     @Override

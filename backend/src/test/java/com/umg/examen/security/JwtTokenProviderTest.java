@@ -12,6 +12,8 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class JwtTokenProviderTest {
@@ -57,6 +59,18 @@ class JwtTokenProviderTest {
         assertTrue(tokenProvider.validateRefreshToken(refreshToken));
         assertFalse(tokenProvider.validateAccessToken(refreshToken));
         assertEquals("admin", tokenProvider.getUsernameFromJwt(refreshToken));
+        assertNotNull(tokenProvider.getTokenIdFromJwt(refreshToken));
+    }
+
+    @Test
+    void eachRefreshTokenHasAUniqueIdentifier() {
+        String firstRefreshToken = tokenProvider.generateRefreshToken(authentication);
+        String secondRefreshToken = tokenProvider.generateRefreshToken(authentication);
+
+        assertNotEquals(
+                tokenProvider.getTokenIdFromJwt(firstRefreshToken),
+                tokenProvider.getTokenIdFromJwt(secondRefreshToken)
+        );
     }
 
     @Test

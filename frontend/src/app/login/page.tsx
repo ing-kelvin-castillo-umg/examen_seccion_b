@@ -1,9 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useAuth } from "@/context/AuthContext";
+import {
+  INACTIVITY_LOGOUT_MESSAGE_KEY,
+  useAuth,
+} from "@/context/AuthContext";
 import {
   Package,
   KeyRound,
@@ -11,6 +14,7 @@ import {
   ArrowRight,
   ShieldCheck,
   AlertCircle,
+  Info,
   Loader2,
   ChevronLeft,
 } from "lucide-react";
@@ -20,9 +24,18 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
 
   const { login } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    const message = sessionStorage.getItem(INACTIVITY_LOGOUT_MESSAGE_KEY);
+    if (message) {
+      sessionStorage.removeItem(INACTIVITY_LOGOUT_MESSAGE_KEY);
+      setInfoMessage(message);
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,6 +116,13 @@ export default function LoginPage() {
             </button>
           </div>
         </div>
+
+        {infoMessage && (
+          <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-xl text-xs text-blue-200 flex items-center gap-2">
+            <Info className="w-4 h-4 shrink-0" />
+            <span>{infoMessage}</span>
+          </div>
+        )}
 
         {/* Error Notification */}
         {error && (

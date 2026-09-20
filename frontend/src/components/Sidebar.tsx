@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
+import { INACTIVITY_TIMEOUT_MS, useAuth } from "@/context/AuthContext";
 import {
   Package,
   Boxes,
@@ -11,11 +11,20 @@ import {
   ShieldAlert,
   User as UserIcon,
   Home,
+  Clock3,
 } from "lucide-react";
 
 export const Sidebar: React.FC = () => {
   const pathname = usePathname();
-  const { user, isAdmin, logout } = useAuth();
+  const { user, isAdmin, logout, inactivitySecondsRemaining } = useAuth();
+
+  const formatRemainingTime = (totalSeconds: number | null): string => {
+    const defaultSeconds = Math.ceil(INACTIVITY_TIMEOUT_MS / 1000);
+    const safeSeconds = Math.max(0, totalSeconds ?? defaultSeconds);
+    const minutes = Math.floor(safeSeconds / 60);
+    const seconds = safeSeconds % 60;
+    return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+  };
 
   const navItems = [
     {
@@ -101,6 +110,13 @@ export const Sidebar: React.FC = () => {
             }`}
           >
             {isAdmin ? "Admin" : "User"}
+          </span>
+        </div>
+
+        <div className="mb-3 flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
+          <Clock3 className="w-3.5 h-3.5" />
+          <span>
+            Cierre por inactividad en {formatRemainingTime(inactivitySecondsRemaining)}
           </span>
         </div>
 

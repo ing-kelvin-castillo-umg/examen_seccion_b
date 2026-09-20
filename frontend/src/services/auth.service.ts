@@ -10,6 +10,7 @@ export class AuthService {
     const session = AuthMapper.toSession(response.data);
 
     if (typeof window !== "undefined") {
+      ApiClient.markSessionActive();
       localStorage.setItem("accessToken", session.accessToken);
       localStorage.setItem("refreshToken", session.refreshToken);
       localStorage.removeItem("token");
@@ -24,13 +25,29 @@ export class AuthService {
     return AuthMapper.toUserFromResponse(response.data);
   }
 
-  static logout(): void {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
+  static async logout(): Promise<void> {
+    if (typeof window === "undefined") return;
+
+    const refreshToken = localStorage.getItem("refreshToken");
+    ApiClient.beginLogout();
+
+    const backendLogoutRequest = refreshToken
+      ? ApiClient.post<void>("/api/auth/logout", { refreshToken })
+      : Promise.resolve();
+    this.clearStoredSession();
+
+    try {
+      await backendLogoutRequest;
+    } catch (error) {
+      console.warn("No fue posible notificar el logout al backend:", error);
     }
+  }
+
+  private static clearStoredSession(): void {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
   }
 
   static getStoredSession(): AuthSession | null {
