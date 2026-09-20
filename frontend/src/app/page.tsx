@@ -81,118 +81,124 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100">
+    <div className="min-h-screen bg-canvas text-ink">
       <Navbar />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 space-y-16">
-        {/* Hero Section */}
-        <section className="text-center space-y-5 max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold tracking-wide">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Universidad Mariano Gálvez de Guatemala • Segundo Parcial</span>
-          </div>
+      <main>
+        <section className="relative overflow-hidden border-b border-line bg-white">
+          <div className="absolute inset-y-0 right-0 hidden w-1/3 bg-brand-50/70 lg:block" />
+          <div className="relative mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-12 lg:px-8 lg:py-24">
+            <div className="flex flex-col justify-center lg:col-span-7">
+              <div className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-3.5 py-1.5 text-xs font-bold tracking-wide text-brand-800">
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>Plataforma académica de inventario</span>
+              </div>
 
-          <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-white leading-tight">
-            Gestión y Catálogo de{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-sky-300 to-indigo-400">
-              Productos
-            </span>
-          </h1>
+              <h1 className="max-w-3xl text-4xl font-black leading-[1.08] tracking-[-0.04em] text-brand-950 sm:text-5xl lg:text-6xl">
+                Gestión de productos,
+                <span className="block text-brand-600">clara y centralizada.</span>
+              </h1>
 
-          <p className="text-slate-400 text-base sm:text-lg leading-relaxed">
-            Plataforma monorepo moderna desarrollada con Spring Boot (Java 21), PostgreSQL con Liquibase, autenticación basada en JWT con control de roles, y frontend en Next.js con React.
-          </p>
+              <p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">
+                Consulta el catálogo institucional y administra el inventario desde una experiencia segura, ordenada y accesible para cada rol.
+              </p>
 
-          <div className="pt-2 flex flex-wrap items-center justify-center gap-4">
-            {isAuthenticated ? (
-              <Link
-                href="/dashboard/products"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-lg shadow-blue-600/30 transition-all hover:scale-105"
-              >
-                <span>Acceder al Panel Privado</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            ) : (
-              <>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Link
-                  href="/login"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-lg shadow-blue-600/30 transition-all hover:scale-105"
+                  href={isAuthenticated ? "/dashboard/products" : "/login"}
+                  className="ui-btn-primary px-6 py-3"
                 >
-                  <span>Iniciar Sesión</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <span>{isAuthenticated ? "Ir al panel de productos" : "Ingresar al sistema"}</span>
+                  <ArrowRight className="h-4 w-4" />
                 </Link>
                 <a
                   href="/swagger-ui/index.html"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 font-medium text-sm transition-all"
+                  className="ui-btn-secondary px-6 py-3"
                 >
-                  <Code2 className="w-4 h-4" />
-                  <span>Documentación Swagger API</span>
+                  <Code2 className="h-4 w-4" />
+                  <span>Documentación de la API</span>
                 </a>
-              </>
-            )}
+              </div>
+            </div>
+
+            <div className="lg:col-span-5">
+              <div className="h-full rounded-3xl bg-brand-950 p-6 text-white shadow-panel sm:p-8">
+                <div className="flex items-center justify-between border-b border-white/10 pb-5">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-brand-300">Sistema integrado</p>
+                    <h2 className="mt-1 text-xl font-bold">Catálogo e inventario</h2>
+                  </div>
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-brand-200">
+                    <Layers className="h-5 w-5" />
+                  </div>
+                </div>
+
+                <div className="mt-6 space-y-3">
+                  {[
+                    [ShieldCheck, "Acceso por roles", "Permisos diferenciados para administración y consulta."],
+                    [Database, "Información consistente", "Persistencia y control de cambios sobre el inventario."],
+                    [Zap, "Operación ágil", "Búsqueda, detalle y mantenimiento desde una sola interfaz."],
+                  ].map(([Icon, title, description]) => {
+                    const FeatureIcon = Icon as typeof ShieldCheck;
+                    return (
+                      <div key={title as string} className="flex gap-3 rounded-2xl border border-white/10 bg-white/[0.06] p-4">
+                        <FeatureIcon className="mt-0.5 h-5 w-5 shrink-0 text-brand-300" />
+                        <div>
+                          <h3 className="text-sm font-bold">{title as string}</h3>
+                          <p className="mt-1 text-xs leading-5 text-slate-300">{description as string}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* Carousel Showcase Section */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
+        <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
+          <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <Zap className="w-5 h-5 text-amber-400" />
-                <span>Productos Destacados</span>
-              </h2>
-              <p className="text-xs text-slate-400">
-                Explora el catálogo dinámico de productos activos
-              </p>
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-brand-700">
+                <Zap className="h-4 w-4" />
+                Catálogo disponible
+              </div>
+              <h2 className="mt-2 text-2xl font-black tracking-tight text-brand-950 sm:text-3xl">Productos destacados</h2>
+              <p className="mt-1 text-sm text-muted">Explora información, disponibilidad y precio de cada producto.</p>
             </div>
-            <span className="text-xs text-slate-500 hidden sm:inline">
-              Desplazamiento automático interactivo
-            </span>
+            <span className="hidden text-xs font-medium text-muted sm:inline">Navegación automática e interactiva</span>
           </div>
 
           <Carousel products={products} onSelectProduct={handleSelectProduct} />
         </section>
 
-        {/* Architecture & Roles Features */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
-          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
-            <h3 className="text-base font-bold text-white">Seguridad &amp; Roles JWT</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Control de acceso con roles <span className="text-blue-300 font-mono">ROLE_ADMIN</span> y <span className="text-emerald-300 font-mono">ROLE_USER</span>. Permisos diferenciados para consulta y mutación de inventario.
-            </p>
-          </div>
-
-          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
-              <Database className="w-5 h-5" />
-            </div>
-            <h3 className="text-base font-bold text-white">PostgreSQL &amp; Liquibase</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Evolución de esquema automatizada mediante changelogs versionados, garantizando la creación de tablas y semillas de datos consistentes.
-            </p>
-          </div>
-
-          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-              <Layers className="w-5 h-5" />
-            </div>
-            <h3 className="text-base font-bold text-white">Arquitectura Limpia y Mappers</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Capas desacopladas en Backend (Repository, Entity, Service e Interfaces, Mappers, DTOs) y en Frontend (DTOs, Entities, Mappers, Services).
-            </p>
+        <section className="border-y border-line bg-white">
+          <div className="mx-auto grid max-w-7xl gap-5 px-4 py-14 sm:px-6 md:grid-cols-3 lg:px-8">
+            {[
+              [ShieldCheck, "Seguridad por roles", "Los perfiles administrador y usuario acceden únicamente a las acciones que les corresponden."],
+              [Database, "Datos organizados", "El catálogo mantiene información estructurada y consistente para cada producto."],
+              [Layers, "Arquitectura integrada", "Frontend, BFF y backend trabajan como una única experiencia para el usuario."],
+            ].map(([Icon, title, description]) => {
+              const FeatureIcon = Icon as typeof ShieldCheck;
+              return (
+                <article key={title as string} className="rounded-2xl border border-line bg-white p-6 shadow-soft">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
+                    <FeatureIcon className="h-5 w-5" />
+                  </div>
+                  <h3 className="mt-5 text-base font-extrabold text-ink">{title as string}</h3>
+                  <p className="mt-2 text-sm leading-6 text-muted">{description as string}</p>
+                </article>
+              );
+            })}
           </div>
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-800/80 py-8 text-center text-xs text-slate-500">
-        <p>Universidad Mariano Gálvez de Guatemala • Facultad de Ingeniería en Sistemas</p>
-        <p className="mt-1">Examen Segundo Parcial • Backend Spring Boot 3 + Frontend Next.js</p>
+      <footer className="bg-brand-950 py-8 text-center text-xs text-slate-300">
+        <p className="font-semibold text-white">Universidad Mariano Gálvez de Guatemala</p>
+        <p className="mt-1">Sistema académico de catálogo y gestión de productos</p>
       </footer>
 
       {/* View Product Modal */}

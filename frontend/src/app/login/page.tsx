@@ -63,126 +63,113 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8 bg-slate-950 text-slate-100 relative overflow-hidden">
-      {/* Background ambient lighting */}
-      <div className="absolute top-1/4 -left-32 w-80 h-80 bg-blue-600/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 -right-32 w-80 h-80 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
-
-      {/* Back to Home Link */}
-      <div className="w-full max-w-md mb-6">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-white transition-colors"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          <span>Volver al Inicio</span>
-        </Link>
-      </div>
-
-      {/* Login Card */}
-      <div className="w-full max-w-md bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-2xl space-y-6">
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center mx-auto shadow-lg shadow-blue-500/25">
-            <Package className="w-6 h-6" />
+    <div className="flex min-h-screen items-center justify-center bg-canvas px-4 py-8 sm:px-6 lg:px-8">
+      <div className="grid w-full max-w-5xl overflow-hidden rounded-3xl border border-line bg-white shadow-panel lg:grid-cols-2">
+        <section className="relative hidden overflow-hidden bg-brand-950 p-10 text-white lg:flex lg:flex-col lg:justify-between">
+          <div className="absolute right-0 top-0 h-52 w-52 rounded-full bg-brand-500/10 blur-3xl" />
+          <div className="relative">
+            <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold text-brand-200 transition hover:text-white">
+              <ChevronLeft className="h-4 w-4" />
+              Volver al catálogo
+            </Link>
+            <div className="mt-16 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-500 text-white shadow-soft">
+              <Package className="h-7 w-7" />
+            </div>
+            <p className="mt-8 text-xs font-bold uppercase tracking-[0.18em] text-brand-300">Portal UMG</p>
+            <h1 className="mt-3 text-4xl font-black leading-tight tracking-tight">Inventario seguro y organizado.</h1>
+            <p className="mt-5 max-w-sm text-sm leading-7 text-slate-300">
+              Accede al panel de productos con los permisos asignados a tu perfil institucional.
+            </p>
           </div>
-          <h2 className="text-2xl font-black tracking-tight text-white">Iniciar Sesión</h2>
-          <p className="text-xs text-slate-400">
-            Ingresa con tu cuenta para acceder a la gestión de productos
-          </p>
-        </div>
+          <div className="relative border-t border-white/10 pt-6 text-xs leading-5 text-slate-400">
+            Autenticación protegida, renovación de sesión y cierre seguro por inactividad.
+          </div>
+        </section>
 
-        {/* Quick Fill Credentials Buttons (Ideal for evaluation!) */}
-        <div className="p-3.5 rounded-2xl bg-slate-800/60 border border-slate-700/60 space-y-2">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-            Acceso Rápido para Pruebas:
-          </span>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => fillCredentials("admin", "admin123")}
-              className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/30 text-xs font-semibold transition-all hover:scale-[1.02]"
-            >
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Rol Admin</span>
+        <section className="p-6 sm:p-10 lg:p-12">
+          <Link href="/" className="mb-8 inline-flex items-center gap-1.5 text-xs font-bold text-muted transition hover:text-brand-700 lg:hidden">
+            <ChevronLeft className="h-4 w-4" />
+            Volver al catálogo
+          </Link>
+
+          <div className="mb-8">
+            <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-950 text-white lg:hidden">
+              <Package className="h-6 w-6" />
+            </div>
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-brand-700">Acceso institucional</p>
+            <h2 className="mt-2 text-3xl font-black tracking-tight text-brand-950">Iniciar sesión</h2>
+            <p className="mt-2 text-sm leading-6 text-muted">Ingresa con tu cuenta para acceder a la gestión de productos.</p>
+          </div>
+
+          {infoMessage && (
+            <div role="status" className="mb-5 flex items-center gap-2 rounded-xl border border-brand-200 bg-brand-50 p-3 text-sm font-medium text-brand-900">
+              <Info className="h-4 w-4 shrink-0" />
+              <span>{infoMessage}</span>
+            </div>
+          )}
+
+          {error && (
+            <div role="alert" className="mb-5 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-800">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div>
+              <label htmlFor="username" className="ui-label">Usuario</label>
+              <div className="relative">
+                <UserIcon className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  id="username"
+                  type="text"
+                  autoComplete="username"
+                  required
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Ingresa tu usuario"
+                  className="ui-input pl-10"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="password" className="ui-label">Contraseña</label>
+              <div className="relative">
+                <KeyRound className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  id="password"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="ui-input pl-10"
+                />
+              </div>
+            </div>
+
+            <button type="submit" disabled={loading} className="ui-btn-primary w-full py-3">
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+              <span>{loading ? "Verificando..." : "Entrar al sistema"}</span>
             </button>
-            <button
-              type="button"
-              onClick={() => fillCredentials("user", "user123")}
-              className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 text-xs font-semibold transition-all hover:scale-[1.02]"
-            >
-              <UserIcon className="w-3.5 h-3.5" />
-              <span>Rol Usuario</span>
-            </button>
-          </div>
-        </div>
+          </form>
 
-        {infoMessage && (
-          <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-xl text-xs text-blue-200 flex items-center gap-2">
-            <Info className="w-4 h-4 shrink-0" />
-            <span>{infoMessage}</span>
-          </div>
-        )}
-
-        {/* Error Notification */}
-        {error && (
-          <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-300 flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
-
-        {/* Form */}
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase mb-1.5">
-              Usuario
-            </label>
-            <div className="relative">
-              <UserIcon className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="admin o user"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-700 bg-slate-800 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              />
+          <div className="mt-8 border-t border-line pt-6">
+            <span className="ui-label">Accesos disponibles</span>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <button type="button" onClick={() => fillCredentials("admin", "admin123")} className="ui-btn-secondary text-xs">
+                <ShieldCheck className="h-4 w-4 text-brand-700" />
+                Perfil administrador
+              </button>
+              <button type="button" onClick={() => fillCredentials("user", "user123")} className="ui-btn-secondary text-xs">
+                <UserIcon className="h-4 w-4 text-emerald-700" />
+                Perfil usuario
+              </button>
             </div>
           </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase mb-1.5">
-              Contraseña
-            </label>
-            <div className="relative">
-              <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-700 bg-slate-800 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-lg shadow-blue-600/30 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
-          >
-            {loading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <>
-                <span>Entrar al Sistema</span>
-                <ArrowRight className="w-4 h-4" />
-              </>
-            )}
-          </button>
-        </form>
+        </section>
       </div>
     </div>
   );

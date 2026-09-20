@@ -17,6 +17,8 @@ import {
   RefreshCw,
   CheckCircle,
   AlertTriangle,
+  PackageCheck,
+  PackageX,
 } from "lucide-react";
 
 export default function ProductsPage() {
@@ -104,12 +106,16 @@ export default function ProductsPage() {
     await loadProducts();
   };
 
+  const availableProducts = products.filter((product) => product.inStock).length;
+  const outOfStockProducts = products.length - availableProducts;
+
   return (
-    <div className="p-6 sm:p-10 space-y-8 max-w-7xl w-full mx-auto">
+    <div className="mx-auto w-full max-w-7xl space-y-7 p-4 sm:p-7 lg:p-10">
       {/* Toast alert */}
       {toast && (
         <div
-          className={`fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-5 py-3 rounded-2xl shadow-xl border text-sm font-medium animate-in slide-in-from-bottom-5 duration-300 ${
+          role="status"
+          className={`fixed bottom-4 left-4 right-4 z-50 flex items-center gap-2.5 rounded-2xl border px-5 py-3 text-sm font-semibold shadow-panel sm:left-auto sm:right-6 sm:max-w-md ${
             toast.type === "success"
               ? "bg-emerald-50 border-emerald-200 text-emerald-800"
               : "bg-rose-50 border-rose-200 text-rose-800"
@@ -125,34 +131,34 @@ export default function ProductsPage() {
       )}
 
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
         <div>
-          <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">
-            <Boxes className="w-4 h-4 text-blue-600" />
+          <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-brand-700">
+            <Boxes className="h-4 w-4" />
             <span>Módulo de Inventario</span>
           </div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-3xl font-black tracking-tight text-brand-950 sm:text-4xl">
             Gestión de Productos
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
             Consulta, busca y gestiona el inventario de productos en tiempo real.
           </p>
         </div>
 
         {/* User Role Badge & Refresh */}
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <button
             onClick={loadProducts}
             disabled={loading}
             title="Recargar listado"
-            className="p-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-600 transition-colors shadow-sm disabled:opacity-50"
+            className="ui-icon-button"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-blue-600" : ""}`} />
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-brand-600" : ""}`} />
           </button>
 
-          <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-200 shadow-sm text-xs font-semibold text-slate-700">
+          <div className="flex items-center gap-2 rounded-xl border border-line bg-white px-3.5 py-2.5 text-xs font-semibold text-slate-700 shadow-soft">
             {isAdmin ? (
-              <ShieldCheck className="w-4 h-4 text-indigo-600" />
+              <ShieldCheck className="w-4 h-4 text-brand-700" />
             ) : (
               <UserIcon className="w-4 h-4 text-emerald-600" />
             )}
@@ -160,7 +166,7 @@ export default function ProductsPage() {
             <span
               className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${
                 isAdmin
-                  ? "bg-indigo-100 text-indigo-800"
+                  ? "bg-brand-100 text-brand-800"
                   : "bg-emerald-100 text-emerald-800"
               }`}
             >
@@ -169,6 +175,36 @@ export default function ProductsPage() {
           </div>
         </div>
       </div>
+
+      <section className="grid gap-4 sm:grid-cols-3" aria-label="Resumen del inventario">
+        <article className="ui-card flex items-center gap-4 p-5">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
+            <Boxes className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide text-muted">Productos</p>
+            <p className="mt-1 text-2xl font-black text-brand-950">{products.length}</p>
+          </div>
+        </article>
+        <article className="ui-card flex items-center gap-4 p-5">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+            <PackageCheck className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide text-muted">Disponibles</p>
+            <p className="mt-1 text-2xl font-black text-brand-950">{availableProducts}</p>
+          </div>
+        </article>
+        <article className="ui-card flex items-center gap-4 p-5">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 text-amber-700">
+            <PackageX className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide text-muted">Sin existencias</p>
+            <p className="mt-1 text-2xl font-black text-brand-950">{outOfStockProducts}</p>
+          </div>
+        </article>
+      </section>
 
       {/* Main DataTable */}
       <DataTable

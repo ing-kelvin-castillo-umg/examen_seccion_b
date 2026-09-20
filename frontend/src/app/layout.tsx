@@ -3,8 +3,8 @@ import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 
 export const metadata: Metadata = {
-  title: "Examen Parcial - Sistema de Productos UMG",
-  description: "Plataforma de catálogo y gestión de productos con Next.js y Spring Boot",
+  title: "Portal UMG | Sistema de Productos",
+  description: "Plataforma académica para catálogo y gestión de productos",
 };
 
 export default function RootLayout({
@@ -14,7 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body className="antialiased min-h-screen flex flex-col bg-slate-50 text-slate-900">
+      <body className="min-h-screen flex flex-col bg-canvas text-ink antialiased">
         <AuthProvider>
           {children}
         </AuthProvider>
