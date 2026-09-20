@@ -5,20 +5,34 @@ import { User } from "@/entities/user.entity";
 import { AuthService } from "@/services/auth.service";
 import { useRouter } from "next/navigation";
 
+export type LogoutReason = "inactivity";
+
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
   loading: boolean;
+  /** Motivo del último cierre de sesión forzado (se muestra en /login). */
+  logoutReason: LogoutReason | null;
   login: (username: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
+  logout: (reason?: LogoutReason) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function clearClientStorage(): void {
+  try {
+    localStorage.clear();
+    sessionStorage.clear();
+  } catch {
+    /* almacenamiento no disponible */
+  }
+}
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [logoutReason, setLogoutReason] = useState<LogoutReason | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -31,16 +45,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (username: string, password: string) => {
     const session = await AuthService.login({ username, password });
+    setLogoutReason(null);
     setUser(session.user);
   };
 
-  const logout = async () => {
+  // Flujo único de cierre de sesión (botón manual e inactividad): backend -> cookies -> estado -> /login.
+  const logout = async (reason?: LogoutReason) => {
     try {
       await AuthService.logout();
-    } finally {
-      setUser(null);
-      router.push("/");
+    } catch {
+      // Aunque el BFF no responda, la sesión local se cierra igualmente.
     }
+    clearClientStorage();
+    setLogoutReason(reason === "inactivity" ? "inactivity" : null);
+    setUser(null);
+    router.push("/login");
   };
 
   const isAdmin = !!(user?.roles && user.roles.includes("ROLE_ADMIN"));
@@ -53,6 +72,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAuthenticated,
         isAdmin,
         loading,
+        logoutReason,
         login,
         logout,
       }}

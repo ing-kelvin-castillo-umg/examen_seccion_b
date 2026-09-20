@@ -1,6 +1,7 @@
 package com.umg.examen.controller;
 
 import com.umg.examen.dto.request.LoginRequest;
+import com.umg.examen.dto.request.LogoutRequest;
 import com.umg.examen.dto.request.RefreshRequest;
 import com.umg.examen.dto.response.ApiResponse;
 import com.umg.examen.dto.response.AuthResponse;
@@ -9,6 +10,7 @@ import com.umg.examen.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -30,6 +32,16 @@ public class AuthController {
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
         AuthResponse authResponse = authService.login(request);
         return ResponseEntity.ok(ApiResponse.success("Inicio de sesión exitoso", authResponse));
+    }
+
+    @PostMapping("/logout")
+    @Operation(summary = "Cerrar sesión", description = "Revoca los refresh tokens del usuario e invalida el access token en curso (jti). Identifica al usuario por el Bearer token y/o por el refresh token del cuerpo (opcional). Es idempotente")
+    public ResponseEntity<ApiResponse<Void>> logout(HttpServletRequest request,
+                                                    @RequestBody(required = false) LogoutRequest body) {
+        String header = request.getHeader("Authorization");
+        String accessToken = (header != null && header.startsWith("Bearer ")) ? header.substring(7) : null;
+        authService.logout(accessToken, body != null ? body.getRefreshToken() : null);
+        return ResponseEntity.ok(ApiResponse.success("Sesión cerrada", null));
     }
 
     @PostMapping("/refresh")

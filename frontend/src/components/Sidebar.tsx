@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { InactivityCountdown } from "@/components/InactivityCountdown";
 import {
   Package,
   Boxes,
@@ -17,9 +18,10 @@ import {
 interface SidebarProps {
   open?: boolean;
   onClose?: () => void;
+  inactivity?: { secondsLeft: number; warning: boolean };
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ open = false, onClose }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ open = false, onClose, inactivity }) => {
   const pathname = usePathname();
   const { user, isAdmin, logout } = useAuth();
 
@@ -99,6 +101,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ open = false, onClose }) => {
 
       {/* User Profile Footer */}
       <div className="p-4 border-t border-ink-800 bg-ink-950/50">
+        {inactivity && (
+          <InactivityCountdown secondsLeft={inactivity.secondsLeft} warning={inactivity.warning} />
+        )}
         <div className="flex items-center justify-between gap-3 mb-3">
           <div className="flex items-center gap-2.5 overflow-hidden">
             <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white font-semibold text-xs shrink-0 ${isAdmin ? "bg-accent-700 ring-2 ring-accent-400" : "bg-emerald-600 ring-2 ring-emerald-400"}`}>
@@ -125,7 +130,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ open = false, onClose }) => {
         </div>
 
         <button
-          onClick={logout}
+          onClick={() => logout()}
           className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium text-rose-400 hover:text-white bg-rose-500/10 hover:bg-rose-600 rounded-lg transition-colors border border-rose-500/20 hover:border-transparent"
         >
           <LogOut className="w-3.5 h-3.5" />

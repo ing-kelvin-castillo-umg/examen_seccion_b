@@ -16,6 +16,7 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.HexFormat;
+import java.util.Optional;
 
 @Service
 public class RefreshTokenServiceImpl implements RefreshTokenService {
@@ -66,6 +67,21 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         }
 
         return new RotatedRefreshToken(user, create(user));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<Long> findUserId(String rawToken) {
+        if (rawToken == null || rawToken.isBlank()) {
+            return Optional.empty();
+        }
+        return repository.findByTokenHash(hash(rawToken)).map(t -> t.getUser().getId());
+    }
+
+    @Override
+    @Transactional
+    public void revokeAllForUser(Long userId) {
+        repository.revokeAllByUserId(userId);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.umg.examen.security;
 
+import com.umg.examen.service.TokenRevocationService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,10 +24,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider tokenProvider;
     private final CustomUserDetailsService userDetailsService;
+    private final TokenRevocationService revocationService;
 
-    public JwtAuthenticationFilter(JwtTokenProvider tokenProvider, CustomUserDetailsService userDetailsService) {
+    public JwtAuthenticationFilter(JwtTokenProvider tokenProvider,
+                                   CustomUserDetailsService userDetailsService,
+                                   TokenRevocationService revocationService) {
         this.tokenProvider = tokenProvider;
         this.userDetailsService = userDetailsService;
+        this.revocationService = revocationService;
     }
 
     @Override
@@ -36,7 +41,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String jwt = getJwtFromRequest(request);
 
-            if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
+            // Un jti revocado (logout) se trata como token inválido; los tokens antiguos sin jti siguen funcionando.
+            if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)
+                    && !revocationService.isRevoked(tokenProvider.getJtiFromJwt(jwt))) {
                 String username = tokenProvider.getUsernameFromJwt(jwt);
 
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.UUID;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,6 +49,7 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .subject(userPrincipal.getUsername())
                 .claim("roles", roles)
+                .id(UUID.randomUUID().toString())
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(getSigningKey())
@@ -61,10 +63,24 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .subject(username)
                 .claim("roles", roles)
+                .id(UUID.randomUUID().toString())
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(getSigningKey())
                 .compact();
+    }
+
+    public Claims getClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
+
+    /** jti del token, o null en tokens antiguos emitidos antes de existir la revocación. */
+    public String getJtiFromJwt(String token) {
+        return getClaims(token).getId();
     }
 
     public String getUsernameFromJwt(String token) {

@@ -11,6 +11,7 @@ import com.umg.examen.security.InvalidRefreshTokenException;
 import com.umg.examen.security.JwtTokenProvider;
 import com.umg.examen.service.AuthService;
 import com.umg.examen.service.RefreshTokenService;
+import com.umg.examen.service.TokenRevocationService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -18,8 +19,16 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -29,17 +38,20 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final RefreshTokenService refreshTokenService;
+    private final TokenRevocationService revocationService;
 
     public AuthServiceImpl(AuthenticationManager authenticationManager,
                            JwtTokenProvider tokenProvider,
                            UserRepository userRepository,
                            UserMapper userMapper,
-                           RefreshTokenService refreshTokenService) {
+                           RefreshTokenService refreshTokenService,
+                           TokenRevocationService revocationService) {
         this.authenticationManager = authenticationManager;
         this.tokenProvider = tokenProvider;
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.refreshTokenService = refreshTokenService;
+        this.revocationService = revocationService;
     }
 
     @Override
@@ -69,6 +81,32 @@ public class AuthServiceImpl implements AuthService {
         String accessToken = tokenProvider.generateTokenFromUsername(user.getUsername(), roles);
 
         return withRefreshToken(userMapper.toAuthResponse(user, accessToken), rotated.refreshToken());
+    }
+
+    /**
+     * Cierra la sesión: invalida el access token en curso (jti) y revoca los refresh tokens del usuario.
+     * Es idempotente: un token expirado o inválido simplemente no aporta nada que invalidar.
+     */
+    @Override
+    @Transactional
+    public void logout(String accessToken, String refreshToken) {
+        Set<Long> userIds = new HashSet<>();
+
+        if (StringUtils.hasText(accessToken)) {
+            try {
+                Claims claims = tokenProvider.getClaims(accessToken);
+                if (claims.getId() != null) {
+                    LocalDateTime expiresAt = LocalDateTime.ofInstant(claims.getExpiration().toInstant(), ZoneId.systemDefault());
+                    revocationService.revoke(claims.getId(), expiresAt);
+                }
+                userRepository.findByUsername(claims.getSubject()).ifPresent(u -> userIds.add(u.getId()));
+            } catch (JwtException | IllegalArgumentException ignored) {
+                // Access token expirado o inválido: ya no autoriza nada.
+            }
+        }
+
+        refreshTokenService.findUserId(refreshToken).ifPresent(userIds::add);
+        userIds.forEach(refreshTokenService::revokeAllForUser);
     }
 
     @Override

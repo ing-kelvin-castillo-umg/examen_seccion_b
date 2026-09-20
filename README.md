@@ -99,6 +99,7 @@ La aplicación estará disponible en [http://localhost:3000](http://localhost:30
 | :--- | :--- | :--- | :--- |
 | `POST` | `/api/auth/login` | Iniciar sesión: devuelve access token (JWT corto) y refresh token | Público |
 | `POST` | `/api/auth/refresh` | Renovar sesión con rotación del refresh token | Público (requiere refresh token válido) |
+| `POST` | `/api/auth/logout` | Cerrar sesión: revoca los refresh tokens del usuario e invalida el access token en curso (jti) | Público (idempotente) |
 | `GET` | `/api/auth/me` | Obtener perfil del usuario en sesión | Autenticado |
 | `GET` | `/api/products` | Listar productos (con soporte `?query=`) | Público / Carrusel |
 | `GET` | `/api/products/{id}` | Obtener detalle de un producto por ID | Público / Autenticado |
@@ -136,6 +137,27 @@ Para volver al valor por defecto: `Remove-Item Env:JWT_ACCESS_EXPIRATION_MS; doc
 
 ---
 
+## 🕒 Inactividad y cierre de sesión centralizado
+
+| Elemento | Detalle |
+| :--- | :--- |
+| **Detección** | El layout privado (`DashboardShell` + hook `useInactivityTimer`) escucha `mousemove`, `keydown`, `click`, `scroll` y `touchstart` (con *throttle* de 1 s). El tiempo restante se calcula contra el reloj, así que es exacto aunque la pestaña esté en segundo plano. |
+| **Tiempo límite** | `INACTIVITY_TIMEOUT_SECONDS`, por defecto **180 s**, rango permitido **120-300 s**. Con `INACTIVITY_DEMO_MODE=true` se acepta desde 10 s (solo demostración). Se lee **en runtime** desde el servidor de Next.js: cambiarlo no requiere reconstruir la imagen. |
+| **Interfaz** | Cuenta regresiva visible en el Sidebar (y en la barra superior en móvil) y un aviso en los **últimos 20 s** con el botón «Seguir conectado». |
+| **Al expirar** | `console.info("Inactividad detectada")` → `POST /api/auth/logout` (BFF) → cookies limpias, `localStorage`/`sessionStorage` vaciados y estado reiniciado → `/login` con el mensaje «Sesión cerrada por inactividad». El botón **Cerrar Sesión** usa exactamente el mismo flujo. |
+| **Backend** | `POST /api/auth/logout` revoca todos los refresh tokens del usuario e **invalida el access token en curso**: cada access token nuevo lleva un `jti` y el logout lo guarda en `revoked_access_tokens` (changelog `006`) hasta su expiración natural; `JwtAuthenticationFilter` rechaza los `jti` revocados. Los tokens antiguos sin `jti` siguen siendo válidos. Una tarea programada purga las entradas ya expiradas. |
+| **Tras el logout** | El refresh token viejo devuelve `401` en `/api/auth/refresh` y el access token viejo devuelve `401` en los endpoints protegidos (p. ej. `/api/auth/me`). Los `GET /api/products` siguen siendo públicos, por lo que un token revocado se trata como anónimo. |
+
+**Modo demo (inactividad de ~30 s)**, sin reconstruir (PowerShell):
+
+```powershell
+$env:INACTIVITY_TIMEOUT_SECONDS=30; $env:INACTIVITY_DEMO_MODE="true"; docker compose up -d
+```
+
+Para volver al valor por defecto: `Remove-Item Env:INACTIVITY_TIMEOUT_SECONDS,Env:INACTIVITY_DEMO_MODE; docker compose up -d`.
+
+---
+
 ## 📂 Estructura de Archivos del Repositorio
 
 ```
@@ -168,7 +190,8 @@ app_segundo_parcial/
 │       │           ├── 002-insert-roles-users.xml
 │       │           ├── 003-create-products.xml
 │       │           ├── 004-insert-initial-products.xml
-│       │           └── 005-create-refresh-tokens.xml
+│       │           ├── 005-create-refresh-tokens.xml
+│       │           └── 006-create-revoked-access-tokens.xml
 │       └── test/java/com/umg/examen/PasswordEncoderTest.java
 ├── frontend/
 │   ├── Dockerfile

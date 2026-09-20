@@ -56,6 +56,9 @@ services:
       # Solo servidor (Route Handlers de Next.js); el navegador nunca ve esta URL
       BACKEND_URL: ${BACKEND_URL:-http://backend:8080}
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      # Inactividad (leída en runtime): 180 s por defecto, rango 120-300; con DEMO_MODE=true se acepta desde 10 s
+      INACTIVITY_TIMEOUT_SECONDS: ${INACTIVITY_TIMEOUT_SECONDS:-180}
+      INACTIVITY_DEMO_MODE: ${INACTIVITY_DEMO_MODE:-false}
     ports:
       - "3000:3000"
     depends_on:

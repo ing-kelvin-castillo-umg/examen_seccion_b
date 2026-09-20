@@ -13,6 +13,7 @@ import {
   AlertCircle,
   Loader2,
   ChevronLeft,
+  Clock,
 } from "lucide-react";
 
 export default function LoginPage() {
@@ -21,7 +22,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { login } = useAuth();
+  const { login, logoutReason } = useAuth();
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -103,6 +104,14 @@ export default function LoginPage() {
             </button>
           </div>
         </div>
+
+        {/* Aviso de cierre de sesión por inactividad */}
+        {logoutReason === "inactivity" && (
+          <div role="status" className="p-3 bg-accent-500/10 border border-accent-500/30 rounded-xl text-xs font-semibold text-accent-300 flex items-center gap-2">
+            <Clock className="w-4 h-4 shrink-0" />
+            <span>Sesión cerrada por inactividad</span>
+          </div>
+        )}
 
         {/* Error Notification */}
         {error && (
