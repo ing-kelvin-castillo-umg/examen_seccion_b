@@ -127,14 +127,14 @@ export default function ProductsPage() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">
-            <Boxes className="w-4 h-4 text-blue-600" />
+          <div className="flex items-center gap-2 text-[#657180] text-xs font-semibold uppercase tracking-wider mb-1">
+            <Boxes className="w-4 h-4 text-steel-500" />
             <span>Módulo de Inventario</span>
           </div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-3xl font-black text-[#172331] tracking-tight">
             Gestión de Productos
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-[#657180] mt-1">
             Consulta, busca y gestiona el inventario de productos en tiempo real.
           </p>
         </div>
@@ -145,23 +145,23 @@ export default function ProductsPage() {
             onClick={loadProducts}
             disabled={loading}
             title="Recargar listado"
-            className="p-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-600 transition-colors shadow-sm disabled:opacity-50"
+            className="p-2.5 rounded-xl border border-ivory-400 bg-ivory-50 hover:bg-ivory-100 text-[#657180] transition-colors shadow-sm disabled:opacity-50"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-blue-600" : ""}`} />
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-steel-500" : ""}`} />
           </button>
 
-          <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-200 shadow-sm text-xs font-semibold text-slate-700">
+          <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-ivory-50 border border-ivory-400 shadow-sm text-xs font-semibold text-[#172331]">
             {isAdmin ? (
-              <ShieldCheck className="w-4 h-4 text-indigo-600" />
+              <ShieldCheck className="w-4 h-4 text-[#345A82]" />
             ) : (
-              <UserIcon className="w-4 h-4 text-emerald-600" />
+              <UserIcon className="w-4 h-4 text-[#5E6670]" />
             )}
             <span>Rol:</span>
             <span
               className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${
                 isAdmin
-                  ? "bg-indigo-100 text-indigo-800"
-                  : "bg-emerald-100 text-emerald-800"
+                  ? "bg-[#DCE7F3] text-[#345A82]"
+                  : "bg-[#ECE8E0] text-[#5E6670]"
               }`}
             >
               {isAdmin ? "ADMINISTRADOR" : "USUARIO"}
@@ -185,6 +185,9 @@ export default function ProductsPage() {
         product={viewProduct}
         isOpen={isViewModalOpen}
         onClose={() => setIsViewModalOpen(false)}
+        isAdmin={isAdmin}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
       />
 
       {/* Form Modal (Create / Edit) */}

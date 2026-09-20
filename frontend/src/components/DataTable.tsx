@@ -49,23 +49,23 @@ export const DataTable: React.FC<DataTableProps> = ({
   }, [products, searchTerm]);
 
   return (
-    <div className="w-full bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div className="w-full bg-ivory-25 rounded-2xl shadow-sm border border-ivory-400 overflow-hidden">
       {/* Table Toolbar */}
-      <div className="p-5 border-b border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-50/50">
+      <div className="p-5 border-b border-ivory-400 flex flex-col sm:flex-row items-center justify-between gap-4 bg-ivory-100/50">
         {/* Search Bar */}
         <div className="relative w-full sm:w-96">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[#657180] absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Buscar por nombre, categoría, precio, stock..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-ivory-400 bg-ivory-25 text-sm focus:outline-none focus:ring-2 focus:ring-steel-500 focus:border-transparent transition-all text-[#172331] placeholder:text-[#657180]"
           />
           {searchTerm && (
             <button
               onClick={() => setSearchTerm("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#657180] hover:text-[#172331]"
             >
               Limpiar
             </button>
@@ -74,7 +74,7 @@ export const DataTable: React.FC<DataTableProps> = ({
 
         {/* Actions & Role Indicator */}
         <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-          <span className="text-xs text-slate-500 font-medium">
+          <span className="text-xs text-[#657180] font-medium">
             Mostrando {filteredProducts.length} de {products.length} productos
           </span>
 
@@ -82,13 +82,13 @@ export const DataTable: React.FC<DataTableProps> = ({
           {isAdmin ? (
             <button
               onClick={onCreate}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-sm transition-all hover:shadow"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-steel-500 hover:bg-steel-600 text-white text-sm font-semibold shadow-sm transition-all hover:shadow hover:-translate-y-0.5"
             >
               <Plus className="w-4 h-4" />
               <span>Nuevo Producto</span>
             </button>
           ) : (
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-ivory-100 border border-ivory-400 text-[#5E6670] text-xs font-medium">
               <span>Modo Lectura (Usuario Estándar)</span>
             </div>
           )}
@@ -97,27 +97,35 @@ export const DataTable: React.FC<DataTableProps> = ({
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm text-slate-600">
-          <thead className="bg-slate-100/70 text-slate-700 text-xs uppercase font-bold tracking-wider border-b border-slate-200">
+        <table className="w-full text-left text-sm text-[#657180]">
+          <thead className="bg-ivory-200 text-[#172331] text-xs uppercase font-bold tracking-wider border-b border-ivory-400">
             <tr>
               <th scope="col" className="px-6 py-4">Producto</th>
               <th scope="col" className="px-6 py-4">Categoría</th>
               <th scope="col" className="px-6 py-4">Precio</th>
               <th scope="col" className="px-6 py-4">Inventario</th>
-              <th scope="col" className="px-6 py-4 text-center">Acciones</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-200">
+          <tbody className="divide-y divide-ivory-400">
             {filteredProducts.length > 0 ? (
               filteredProducts.map((product) => (
                 <tr
                   key={product.id}
-                  className="hover:bg-blue-50/40 transition-colors group"
+                  onClick={() => onView(product)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onView(product);
+                    }
+                  }}
+                  tabIndex={0}
+                  aria-label={`Ver detalles de ${product.name}`}
+                  className="hover:bg-[#F0F5FA] transition-all duration-150 group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-steel-500 focus-visible:ring-inset"
                 >
                   {/* Name & Thumbnail */}
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 relative">
+                      <div className="w-14 h-14 rounded-xl overflow-hidden bg-ivory-100 border border-ivory-400 shrink-0 relative">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={product.imageUrl}
@@ -130,8 +138,8 @@ export const DataTable: React.FC<DataTableProps> = ({
                         />
                       </div>
                       <div className="max-w-xs sm:max-w-sm">
-                        <p className="font-bold text-slate-900 line-clamp-1">{product.name}</p>
-                        <p className="text-xs text-slate-500 line-clamp-2 mt-0.5">
+                        <p className="font-bold text-[#172331] line-clamp-1">{product.name}</p>
+                        <p className="text-xs text-[#657180] line-clamp-2 mt-0.5">
                           {product.description}
                         </p>
                       </div>
@@ -140,14 +148,14 @@ export const DataTable: React.FC<DataTableProps> = ({
 
                   {/* Category */}
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
-                      <Tag className="w-3 h-3 text-slate-400" />
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-ivory-200 text-[#475569] border border-ivory-400">
+                      <Tag className="w-3 h-3 text-[#657180]" />
                       {product.category}
                     </span>
                   </td>
 
                   {/* Price */}
-                  <td className="px-6 py-4 whitespace-nowrap font-extrabold text-slate-900">
+                  <td className="px-6 py-4 whitespace-nowrap font-extrabold text-[#172331]">
                     {product.formattedPrice}
                   </td>
 
@@ -167,50 +175,14 @@ export const DataTable: React.FC<DataTableProps> = ({
                       )}
                     </div>
                   </td>
-
-                  {/* Actions */}
-                  <td className="px-6 py-4 whitespace-nowrap text-center">
-                    <div className="inline-flex items-center gap-1.5">
-                      {/* Action: Ver (Available for ALL roles) */}
-                      <button
-                        onClick={() => onView(product)}
-                        title="Ver producto en grande"
-                        className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-
-                      {/* Action: Editar (Available ONLY for ADMIN) */}
-                      {isAdmin && (
-                        <button
-                          onClick={() => onEdit(product)}
-                          title="Editar producto"
-                          className="p-2 text-slate-600 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </button>
-                      )}
-
-                      {/* Action: Eliminar (Available ONLY for ADMIN) */}
-                      {isAdmin && (
-                        <button
-                          onClick={() => onDelete(product)}
-                          title="Eliminar producto"
-                          className="p-2 text-slate-600 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={5} className="px-6 py-12 text-center text-slate-400">
-                  <PackageOpen className="w-12 h-12 mx-auto mb-3 text-slate-300" />
-                  <p className="font-semibold text-slate-700">No se encontraron productos</p>
-                  <p className="text-xs text-slate-500 mt-1">
+                <td colSpan={4} className="px-6 py-12 text-center text-[#657180]">
+                  <PackageOpen className="w-12 h-12 mx-auto mb-3 text-ivory-400" />
+                  <p className="font-semibold text-[#172331]">No se encontraron productos</p>
+                  <p className="text-xs text-[#657180] mt-1">
                     {searchTerm
                       ? `No hay coincidencias para "${searchTerm}"`
                       : "Aún no hay productos registrados en el sistema."}

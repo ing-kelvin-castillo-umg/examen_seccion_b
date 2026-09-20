@@ -9,6 +9,26 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        ivory: {
+          25: '#FFFDF8',
+          50: '#FAF6EE',
+          100: '#F6F0E6',
+          200: '#F2EBDD',
+          300: '#EFE7DA',
+          400: '#E4D9C8',
+        },
+        steel: {
+          50: '#E4ECF5',
+          100: '#C8D6E6',
+          500: '#415F82',
+          600: '#344E6D',
+          700: '#263D59',
+        },
+        navy: {
+          700: '#223650',
+          800: '#172538',
+          900: '#0D1B2A',
+        },
         brand: {
           50: '#f0f7ff',
           100: '#e0effe',
