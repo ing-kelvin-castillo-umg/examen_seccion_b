@@ -3,11 +3,12 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { User } from "@/entities/user.entity";
 import { AuthService } from "@/services/auth.service";
+import { ACCESS_TOKEN_REFRESHED_EVENT } from "@/services/api.client";
 import { useRouter } from "next/navigation";
 
 interface AuthContextType {
   user: User | null;
-  token: string | null;
+  accessToken: string | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
   loading: boolean;
@@ -19,7 +20,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -27,32 +28,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const session = AuthService.getStoredSession();
     if (session) {
       setUser(session.user);
-      setToken(session.token);
+      setAccessToken(session.accessToken);
     }
+
+    const handleAccessTokenRefreshed = (event: Event) => {
+      setAccessToken((event as CustomEvent<string>).detail);
+    };
+
+    window.addEventListener(ACCESS_TOKEN_REFRESHED_EVENT, handleAccessTokenRefreshed);
     setLoading(false);
+
+    return () => {
+      window.removeEventListener(ACCESS_TOKEN_REFRESHED_EVENT, handleAccessTokenRefreshed);
+    };
   }, []);
 
   const login = async (username: string, password: string) => {
     const session = await AuthService.login({ username, password });
     setUser(session.user);
-    setToken(session.token);
+    setAccessToken(session.accessToken);
   };
 
   const logout = () => {
     AuthService.logout();
     setUser(null);
-    setToken(null);
+    setAccessToken(null);
     router.push("/");
   };
 
   const isAdmin = !!(user?.roles && user.roles.includes("ROLE_ADMIN"));
-  const isAuthenticated = !!token && !!user;
+  const isAuthenticated = !!accessToken && !!user;
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        token,
+        accessToken,
         isAuthenticated,
         isAdmin,
         loading,

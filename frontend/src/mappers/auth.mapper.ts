@@ -13,9 +13,10 @@ export class AuthMapper {
     };
 
     return {
-      token: dto.token,
+      accessToken: dto.accessToken,
+      refreshToken: dto.refreshToken,
       user: user,
-      isAuthenticated: !!dto.token,
+      isAuthenticated: !!dto.accessToken && !!dto.refreshToken,
       isAdmin: roles.includes("ROLE_ADMIN"),
     };
   }

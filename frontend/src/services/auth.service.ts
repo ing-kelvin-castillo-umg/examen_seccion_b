@@ -10,7 +10,9 @@ export class AuthService {
     const session = AuthMapper.toSession(response.data);
 
     if (typeof window !== "undefined") {
-      localStorage.setItem("token", session.token);
+      localStorage.setItem("accessToken", session.accessToken);
+      localStorage.setItem("refreshToken", session.refreshToken);
+      localStorage.removeItem("token");
       localStorage.setItem("user", JSON.stringify(session.user));
     }
 
@@ -24,6 +26,8 @@ export class AuthService {
 
   static logout(): void {
     if (typeof window !== "undefined") {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
       localStorage.removeItem("token");
       localStorage.removeItem("user");
     }
@@ -32,15 +36,17 @@ export class AuthService {
   static getStoredSession(): AuthSession | null {
     if (typeof window === "undefined") return null;
 
-    const token = localStorage.getItem("token");
+    const accessToken = localStorage.getItem("accessToken");
+    const refreshToken = localStorage.getItem("refreshToken");
     const userStr = localStorage.getItem("user");
 
-    if (!token || !userStr) return null;
+    if (!accessToken || !refreshToken || !userStr) return null;
 
     try {
       const user = JSON.parse(userStr) as User;
       return {
-        token,
+        accessToken,
+        refreshToken,
         user,
         isAuthenticated: true,
         isAdmin: user.roles?.includes("ROLE_ADMIN") || false,

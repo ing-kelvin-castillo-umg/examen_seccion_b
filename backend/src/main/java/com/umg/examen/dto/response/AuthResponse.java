@@ -4,13 +4,16 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 
-@Schema(description = "Respuesta de autenticación con Token JWT")
+@Schema(description = "Respuesta de autenticación con access token y refresh token")
 public class AuthResponse {
 
-    @Schema(description = "Token de acceso JWT")
-    private String token;
+    @Schema(description = "Access token JWT de corta duración")
+    private String accessToken;
 
-    @Schema(description = "Tipo de token", example = "Bearer")
+    @Schema(description = "Refresh token JWT de mayor duración")
+    private String refreshToken;
+
+    @Schema(description = "Tipo de autorización", example = "Bearer")
     private String type = "Bearer";
 
     @Schema(description = "Nombre de usuario", example = "admin")
@@ -27,21 +30,20 @@ public class AuthResponse {
 
     public AuthResponse() {}
 
-    public AuthResponse(String token, String type, String username, String fullName, String email, List<String> roles) {
-        this.token = token;
-        this.type = type != null ? type : "Bearer";
-        this.username = username;
-        this.fullName = fullName;
-        this.email = email;
-        this.roles = roles;
+    public String getAccessToken() {
+        return accessToken;
     }
 
-    public String getToken() {
-        return token;
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
     }
 
-    public void setToken(String token) {
-        this.token = token;
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
     }
 
     public String getType() {
