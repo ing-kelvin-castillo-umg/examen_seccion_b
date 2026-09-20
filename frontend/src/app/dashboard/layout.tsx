@@ -5,14 +5,17 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { Sidebar } from "@/components/Sidebar";
 import { Loader2 } from "lucide-react";
+import { useInactivityLogout } from "@/hooks/useInactivityLogout";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, logoutForInactivity } = useAuth();
   const router = useRouter();
+
+  useInactivityLogout(isAuthenticated && !loading, logoutForInactivity);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {

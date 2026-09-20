@@ -9,6 +9,7 @@ import com.umg.examen.entity.User;
 import com.umg.examen.mapper.UserMapper;
 import com.umg.examen.repository.UserRepository;
 import com.umg.examen.security.JwtTokenProvider;
+import com.umg.examen.security.RefreshTokenRevocationService;
 import com.umg.examen.service.AuthService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,15 +28,18 @@ public class AuthServiceImpl implements AuthService {
     private final JwtTokenProvider tokenProvider;
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final RefreshTokenRevocationService revocationService;
 
     public AuthServiceImpl(AuthenticationManager authenticationManager,
                            JwtTokenProvider tokenProvider,
                            UserRepository userRepository,
-                           UserMapper userMapper) {
+                           UserMapper userMapper,
+                           RefreshTokenRevocationService revocationService) {
         this.authenticationManager = authenticationManager;
         this.tokenProvider = tokenProvider;
         this.userRepository = userRepository;
         this.userMapper = userMapper;
+        this.revocationService = revocationService;
     }
 
     @Override
@@ -59,7 +63,7 @@ public class AuthServiceImpl implements AuthService {
     @Transactional(readOnly = true)
     public RefreshTokenResponse refresh(RefreshTokenRequest request) {
         String refreshToken = request.getRefreshToken();
-        if (!tokenProvider.validateRefreshToken(refreshToken)) {
+        if (revocationService.isRevoked(refreshToken) || !tokenProvider.validateRefreshToken(refreshToken)) {
             throw new org.springframework.security.authentication.BadCredentialsException("Refresh token inválido o expirado");
         }
 
@@ -70,6 +74,19 @@ public class AuthServiceImpl implements AuthService {
         List<String> roles = user.getRoles().stream().map(role -> role.getName()).toList();
 
         return new RefreshTokenResponse(tokenProvider.generateAccessTokenFromUsername(username, roles), "Bearer");
+    }
+
+    @Override
+    public void logout(RefreshTokenRequest request) {
+        String refreshToken = request.getRefreshToken();
+        if (revocationService.isRevoked(refreshToken)) {
+            return;
+        }
+        if (!tokenProvider.validateRefreshToken(refreshToken)) {
+            throw new org.springframework.security.authentication.BadCredentialsException("Refresh token inválido o expirado");
+        }
+
+        revocationService.revoke(refreshToken, tokenProvider.getExpirationFromJwt(refreshToken).getTime());
     }
 
     @Override

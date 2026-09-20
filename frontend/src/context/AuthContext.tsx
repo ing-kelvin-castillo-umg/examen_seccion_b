@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { User } from "@/entities/user.entity";
 import { AuthService } from "@/services/auth.service";
 import { useRouter } from "next/navigation";
@@ -12,7 +12,8 @@ interface AuthContextType {
   isAdmin: boolean;
   loading: boolean;
   login: (username: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
+  logoutForInactivity: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -47,12 +48,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(session.accessToken);
   };
 
-  const logout = () => {
-    AuthService.logout();
+  const performLogout = useCallback(async (inactivity: boolean) => {
+    await AuthService.logout();
     setUser(null);
     setToken(null);
-    router.push("/");
-  };
+    if (inactivity) {
+      sessionStorage.setItem("authMessage", "Sesión cerrada por inactividad");
+      router.replace("/login");
+    } else {
+      router.push("/");
+    }
+  }, [router]);
+
+  const logout = useCallback(async () => performLogout(false), [performLogout]);
+  const logoutForInactivity = useCallback(async () => performLogout(true), [performLogout]);
 
   const isAdmin = !!(user?.roles && user.roles.includes("ROLE_ADMIN"));
   const isAuthenticated = !!token && !!user;
@@ -67,6 +76,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loading,
         login,
         logout,
+        logoutForInactivity,
       }}
     >
       {children}

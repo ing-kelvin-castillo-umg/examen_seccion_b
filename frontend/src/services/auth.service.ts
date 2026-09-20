@@ -23,12 +23,30 @@ export class AuthService {
     return AuthMapper.toUserFromResponse(response.data);
   }
 
-  static logout(): void {
-    if (typeof window !== "undefined") {
+  static async logout(): Promise<boolean> {
+    if (typeof window === "undefined") return false;
+
+    const refreshToken = localStorage.getItem("refreshToken");
+    let backendNotified = false;
+    try {
+      if (refreshToken) {
+        const response = await fetch("/api/auth/logout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({ refreshToken }),
+          cache: "no-store",
+        });
+        backendNotified = response.ok;
+      }
+    } catch (error) {
+      console.error("[AUTH ERROR] No fue posible notificar el logout al backend:", error);
+    } finally {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("user");
     }
+
+    return backendNotified;
   }
 
   static getStoredSession(): AuthSession | null {
