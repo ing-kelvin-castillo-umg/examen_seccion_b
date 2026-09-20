@@ -49,23 +49,23 @@ export const DataTable: React.FC<DataTableProps> = ({
   }, [products, searchTerm]);
 
   return (
-    <div className="w-full bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div className="w-full bg-white/90 rounded-[1.75rem] shadow-panel border border-brand-100 overflow-hidden backdrop-blur-sm">
       {/* Table Toolbar */}
-      <div className="p-5 border-b border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-50/50">
+      <div className="p-4 sm:p-5 border-b border-brand-100 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 bg-gradient-to-r from-brand-50 via-white to-accent-50/70">
         {/* Search Bar */}
-        <div className="relative w-full sm:w-96">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+        <div className="relative w-full lg:w-[26rem]">
+          <Search className="w-4 h-4 text-brand-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Buscar por nombre, categoría, precio, stock..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            className="control-focus w-full pl-10 pr-16 py-2.5 rounded-xl border border-brand-200 bg-white/90 text-sm text-slate-800 placeholder-slate-400 shadow-sm"
           />
           {searchTerm && (
             <button
               onClick={() => setSearchTerm("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-semibold text-brand-500 hover:text-brand-700"
             >
               Limpiar
             </button>
@@ -73,8 +73,8 @@ export const DataTable: React.FC<DataTableProps> = ({
         </div>
 
         {/* Actions & Role Indicator */}
-        <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-          <span className="text-xs text-slate-500 font-medium">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full lg:w-auto sm:justify-end">
+          <span className="text-[11px] text-slate-500 font-semibold px-3 py-1.5 bg-white/70 border border-brand-100 rounded-full text-center">
             Mostrando {filteredProducts.length} de {products.length} productos
           </span>
 
@@ -82,13 +82,13 @@ export const DataTable: React.FC<DataTableProps> = ({
           {isAdmin ? (
             <button
               onClick={onCreate}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-sm transition-all hover:shadow"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-accent-600 text-white text-sm font-semibold shadow-brand transition-all hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-brand-400/40"
             >
               <Plus className="w-4 h-4" />
               <span>Nuevo Producto</span>
             </button>
           ) : (
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium">
+            <div className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-brand-100/70 border border-brand-200 text-brand-800 text-xs font-semibold">
               <span>Modo Lectura (Usuario Estándar)</span>
             </div>
           )}
@@ -97,27 +97,27 @@ export const DataTable: React.FC<DataTableProps> = ({
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm text-slate-600">
-          <thead className="bg-slate-100/70 text-slate-700 text-xs uppercase font-bold tracking-wider border-b border-slate-200">
+        <table className="w-full min-w-[900px] text-left text-sm text-slate-600">
+          <thead className="bg-gradient-to-r from-ink-950 via-brand-950 to-indigo-950 text-violet-100 text-[11px] uppercase font-bold tracking-[0.13em] border-b border-brand-800">
             <tr>
-              <th scope="col" className="px-6 py-4">Producto</th>
-              <th scope="col" className="px-6 py-4">Categoría</th>
-              <th scope="col" className="px-6 py-4">Precio</th>
-              <th scope="col" className="px-6 py-4">Inventario</th>
-              <th scope="col" className="px-6 py-4 text-center">Acciones</th>
+              <th scope="col" className="px-4 sm:px-6 py-4">Producto</th>
+              <th scope="col" className="px-4 sm:px-6 py-4">Categoría</th>
+              <th scope="col" className="px-4 sm:px-6 py-4">Precio</th>
+              <th scope="col" className="px-4 sm:px-6 py-4">Inventario</th>
+              <th scope="col" className="px-4 sm:px-6 py-4 text-center">Acciones</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-200">
+          <tbody className="divide-y divide-brand-100">
             {filteredProducts.length > 0 ? (
               filteredProducts.map((product) => (
                 <tr
                   key={product.id}
-                  className="hover:bg-blue-50/40 transition-colors group"
+                  className="odd:bg-white even:bg-brand-50/25 hover:bg-accent-50/80 transition-colors group"
                 >
                   {/* Name & Thumbnail */}
-                  <td className="px-6 py-4">
+                  <td className="px-4 sm:px-6 py-4">
                     <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 relative">
+                      <div className="w-14 h-14 rounded-2xl overflow-hidden bg-brand-50 border border-brand-100 shrink-0 relative ring-2 ring-white shadow-sm">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={product.imageUrl}
@@ -130,7 +130,7 @@ export const DataTable: React.FC<DataTableProps> = ({
                         />
                       </div>
                       <div className="max-w-xs sm:max-w-sm">
-                        <p className="font-bold text-slate-900 line-clamp-1">{product.name}</p>
+                        <p className="font-bold text-ink-900 line-clamp-1 group-hover:text-brand-800 transition-colors">{product.name}</p>
                         <p className="text-xs text-slate-500 line-clamp-2 mt-0.5">
                           {product.description}
                         </p>
@@ -139,24 +139,24 @@ export const DataTable: React.FC<DataTableProps> = ({
                   </td>
 
                   {/* Category */}
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
-                      <Tag className="w-3 h-3 text-slate-400" />
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-50 text-brand-800 border border-brand-200">
+                      <Tag className="w-3 h-3 text-brand-500" />
                       {product.category}
                     </span>
                   </td>
 
                   {/* Price */}
-                  <td className="px-6 py-4 whitespace-nowrap font-extrabold text-slate-900">
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap font-black text-brand-950">
                     {product.formattedPrice}
                   </td>
 
                   {/* Stock */}
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-1.5">
                       {product.inStock ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-accent-50 text-accent-800 border border-accent-200">
+                          <CheckCircle2 className="w-3 h-3 text-accent-600" />
                           {product.stock} unidades
                         </span>
                       ) : (
@@ -169,13 +169,13 @@ export const DataTable: React.FC<DataTableProps> = ({
                   </td>
 
                   {/* Actions */}
-                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-center">
                     <div className="inline-flex items-center gap-1.5">
                       {/* Action: Ver (Available for ALL roles) */}
                       <button
                         onClick={() => onView(product)}
                         title="Ver producto en grande"
-                        className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        className="p-2 text-slate-500 hover:text-brand-700 hover:bg-brand-100 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-brand-300/50"
                       >
                         <Eye className="w-4 h-4" />
                       </button>
@@ -185,7 +185,7 @@ export const DataTable: React.FC<DataTableProps> = ({
                         <button
                           onClick={() => onEdit(product)}
                           title="Editar producto"
-                          className="p-2 text-slate-600 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                          className="p-2 text-slate-500 hover:text-accent-700 hover:bg-accent-100 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-accent-300/50"
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
@@ -196,7 +196,7 @@ export const DataTable: React.FC<DataTableProps> = ({
                         <button
                           onClick={() => onDelete(product)}
                           title="Eliminar producto"
-                          className="p-2 text-slate-600 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                          className="p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-rose-300/50"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -207,9 +207,9 @@ export const DataTable: React.FC<DataTableProps> = ({
               ))
             ) : (
               <tr>
-                <td colSpan={5} className="px-6 py-12 text-center text-slate-400">
-                  <PackageOpen className="w-12 h-12 mx-auto mb-3 text-slate-300" />
-                  <p className="font-semibold text-slate-700">No se encontraron productos</p>
+                <td colSpan={5} className="px-6 py-14 text-center text-slate-400 bg-gradient-to-b from-white to-brand-50/50">
+                  <PackageOpen className="w-12 h-12 mx-auto mb-3 text-brand-300" />
+                  <p className="font-semibold text-brand-950">No se encontraron productos</p>
                   <p className="text-xs text-slate-500 mt-1">
                     {searchTerm
                       ? `No hay coincidencias para "${searchTerm}"`
